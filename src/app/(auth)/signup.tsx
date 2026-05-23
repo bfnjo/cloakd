@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useState } from "react";
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth } from "../firebaseConfig";
+import { auth } from "../../firebaseConfig";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -19,7 +19,7 @@ export default function Signup() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
-      router.replace("/home");
+      router.replace("/(tabs)/home");
     } catch (error: any) {
       Alert.alert("Signup Failed", error.message);
     } finally {
@@ -30,7 +30,7 @@ export default function Signup() {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../assets/images/logo.png")}
+        source={require("../../../assets/images/logo.png")} // ✅ fixed
         style={styles.logo}
         resizeMode="contain"
       />
@@ -66,7 +66,7 @@ export default function Signup() {
         <Text style={styles.buttonText}>{loading ? "Creating account..." : "Sign Up"}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/")}>
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/(auth)")}>
         <Text style={styles.secondaryButtonText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </View>

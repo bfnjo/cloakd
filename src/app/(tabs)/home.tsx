@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { auth } from "../firebaseConfig";
+import { auth } from "../../firebaseConfig";
 
 export default function Home() {
   const [userName, setUserName] = useState("");
@@ -12,7 +12,7 @@ export default function Home() {
       if (user) {
         setUserName(user.displayName || "there");
       } else {
-        router.replace("/");
+        router.replace("/(auth)");
       }
     });
     return unsubscribe;
@@ -31,11 +31,11 @@ export default function Home() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require("../../assets/images/logo.png")}
+          source={require("../../../assets/images/logo.png")}
           style={styles.logo}
           resizeMode="contain"
         />
-        <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/profile")}>
+        <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/(tabs)/profile")}>
           <Text style={styles.profileText}>👤</Text>
         </TouchableOpacity>
       </View>
@@ -54,19 +54,19 @@ export default function Home() {
       {/* Quick Actions */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/wardrobe")}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/wardrobe")}>
           <Text style={styles.actionIcon}>👗</Text>
           <Text style={styles.actionLabel}>Wardrobe</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/builder")}>
           <Text style={styles.actionIcon}>✨</Text>
           <Text style={styles.actionLabel}>Builder</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/calendar")}>
           <Text style={styles.actionIcon}>📅</Text>
           <Text style={styles.actionLabel}>Calendar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/community")}>
           <Text style={styles.actionIcon}>🌐</Text>
           <Text style={styles.actionLabel}>Community</Text>
         </TouchableOpacity>

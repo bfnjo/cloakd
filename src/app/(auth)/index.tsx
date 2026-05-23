@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth } from "../firebaseConfig";
+import { auth } from "../../firebaseConfig";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,7 +12,7 @@ export default function Login() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.replace("/home");
+        router.replace("/(tabs)/home");
       }
     });
     return unsubscribe;
@@ -26,7 +26,7 @@ export default function Login() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/home");
+      router.replace("/(tabs)/home");
     } catch (error: any) {
       Alert.alert("Login Failed", error.message);
     } finally {
@@ -37,7 +37,7 @@ export default function Login() {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../assets/images/logo.png")}
+        source={require("../../../assets/images/logo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
@@ -66,7 +66,7 @@ export default function Login() {
         <Text style={styles.buttonText}>{loading ? "Logging in..." : "Log In"}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/signup")}>
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/(auth)/signup")}>
         <Text style={styles.secondaryButtonText}>Create an account</Text>
       </TouchableOpacity>
     </View>

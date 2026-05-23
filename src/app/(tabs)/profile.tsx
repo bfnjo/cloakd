@@ -1,8 +1,8 @@
 import { router } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { auth } from "../firebaseConfig";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { auth } from "../../firebaseConfig";
 
 export default function Profile() {
   const [userName, setUserName] = useState("");
@@ -14,22 +14,28 @@ export default function Profile() {
         setUserName(user.displayName || "User");
         setEmail(user.email || "");
       } else {
-        router.replace("/");
+        router.replace("/(auth)");
       }
     });
     return unsubscribe;
   }, []);
 
   const handleLogout = async () => {
-    const confirmed = window.confirm("Are you sure you want to log out?");
-    if (confirmed) {
-      try {
-        await signOut(auth);
-        router.replace("/");
-      } catch (error: any) {
-        alert(error.message);
-      }
-    }
+    Alert.alert("Log Out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await signOut(auth);
+            router.replace("/(auth)");
+          } catch (error: any) {
+            Alert.alert("Error", error.message);
+          }
+        },
+      },
+    ]);
   };
 
   return (
