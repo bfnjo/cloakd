@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth } from "../firebaseConfig";
@@ -82,10 +83,18 @@ export default function Wardrobe() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>My Wardrobe</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ Add</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
+        <Text style={styles.title}>My Wardrobe</Text>
+        <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+                <Text style={styles.addButtonText}>+ Add</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/profile")}>
+                <Text style={styles.profileText}>👤</Text>
+            </TouchableOpacity>
+        </View>
       </View>
 
       {/* Category Filter */}
@@ -203,4 +212,8 @@ const styles = StyleSheet.create({
   submitButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   cancelButton: { alignItems: "center", padding: 12 },
   cancelButtonText: { color: "#888", fontSize: 14 },
+  backText: { color: "#7B7FE8", fontSize: 16 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  profileButton: { backgroundColor: "#111", padding: 8, borderRadius: 20, borderWidth: 1, borderColor: "#222" },
+  profileText: { fontSize: 20 },
 });
