@@ -62,7 +62,7 @@ export default function Home() {
           <Text style={styles.actionIcon}>✨</Text>
           <Text style={styles.actionLabel}>Builder</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/calendar")}>
           <Text style={styles.actionIcon}>📅</Text>
           <Text style={styles.actionLabel}>Calendar</Text>
         </TouchableOpacity>
