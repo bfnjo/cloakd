@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { auth } from "../firebaseConfig";
 
 export default function Profile() {
@@ -21,17 +21,15 @@ export default function Profile() {
   }, []);
 
   const handleLogout = async () => {
-    Alert.alert("Log Out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log Out",
-        style: "destructive",
-        onPress: async () => {
-          await signOut(auth);
-          router.replace("/");
-        },
-      },
-    ]);
+    const confirmed = window.confirm("Are you sure you want to log out?");
+    if (confirmed) {
+      try {
+        await signOut(auth);
+        router.replace("/");
+      } catch (error: any) {
+        alert(error.message);
+      }
+    }
   };
 
   return (
