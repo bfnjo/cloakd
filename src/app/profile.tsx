@@ -34,7 +34,7 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.replace("/home")}>
         <Text style={styles.backText}>← Back</Text>
       </TouchableOpacity>
 
