@@ -54,7 +54,7 @@ export default function Home() {
       {/* Quick Actions */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/wardrobe")}>
           <Text style={styles.actionIcon}>👗</Text>
           <Text style={styles.actionLabel}>Wardrobe</Text>
         </TouchableOpacity>
