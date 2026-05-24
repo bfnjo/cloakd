@@ -21,21 +21,15 @@ export default function Profile() {
   }, []);
 
   const handleLogout = async () => {
-    Alert.alert("Log Out", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await signOut(auth);
-            router.replace("/(auth)");
-          } catch (error: any) {
-            Alert.alert("Error", error.message);
-          }
-        },
-      },
-    ]);
+    const confirmed = window.confirm("Are you sure you want to log out?");
+    if (confirmed) {
+      try {
+        await signOut(auth);
+        router.replace("/(auth)");
+      } catch (error: any) {
+        Alert.alert("Error", error.message);
+      }
+    }
   };
 
   return (
@@ -59,7 +53,7 @@ export default function Profile() {
           <Text style={styles.menuItemText}>🏅 Badge Wall</Text>
           <Text style={styles.menuItemArrow}>→</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/(tabs)/stats")}>
           <Text style={styles.menuItemText}>📊 My Stats</Text>
           <Text style={styles.menuItemArrow}>→</Text>
         </TouchableOpacity>

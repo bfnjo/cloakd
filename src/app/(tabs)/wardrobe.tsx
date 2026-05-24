@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
@@ -53,23 +53,29 @@ export default function Wardrobe() {
   const categories = ["All", "Tops", "Bottoms", "Outerwear", "Footwear", "Accessories"];
 
   const fetchItems = async () => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (!user) return;
-      const { data, error } = await supabase
-        .from("clothing_items")
-        .select("*")
-        .eq("user_id", user.uid)
-        .order("created_at", { ascending: false });
-      if (error) Alert.alert("Error", error.message);
-      else setItems(data || []);
-      setLoading(false);
+    const user = await new Promise<any>((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged((u) => {
+        unsubscribe();
+        resolve(u);
+      });
     });
-    return unsubscribe;
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("clothing_items")
+      .select("*")
+      .eq("user_id", user.uid)
+      .order("created_at", { ascending: false });
+    if (error) { console.log("Fetch error:", error.message); return; }
+    setItems(data || []);
+    setLoading(false);
   };
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchItems();
+    }, [])
+  );
+    
 
   const handleAddItem = async () => {
     const user = auth.currentUser;
@@ -155,10 +161,16 @@ export default function Wardrobe() {
     ? items
     : items.filter(item => item.category === selectedCategory);
 
+  const getCPWColour = (cpw: number) => {
+    if (cpw < 1) return { color: "#00cc44", background: "#0a2a0a", border: "#00ff0033" }
+    if (cpw < 5) return { color: "#ffaa00", background: "#2a1a00", border: "#ffaa0033" }
+    return { color: "#ff4444", background: "#1a0000", border: "#ff000033" }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.replace("/(tabs)/home")}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>My Wardrobe</Text>
@@ -203,11 +215,17 @@ export default function Wardrobe() {
                 {item.brand ? <Text style={styles.itemBrand}>{item.brand}</Text> : null}
                 <Text style={styles.itemDetail}>{item.colour}{item.subcategory ? ` · ${item.subcategory}` : ""}</Text>
                 <Text style={styles.itemWears}>{item.wear_count}× worn</Text>
-                {item.price > 0 && (
-                  <Text style={styles.itemCPW}>
-                    ${item.wear_count > 0 ? (item.price / item.wear_count).toFixed(2) : item.price.toFixed(2)}/wear
-                  </Text>
-                )}
+                {item.price > 0 && (() => {
+                  const cpw = item.wear_count > 0 ? item.price / item.wear_count : item.price;
+                  const colours = getCPWColour(cpw);
+                  return (
+                    <View style={[styles.cpwBadge, { backgroundColor: colours.background, borderColor: colours.border }]}>
+                      <Text style={[styles.cpwBadgeText, { color: colours.color }]}>
+                        ${cpw.toFixed(2)}/wear
+                      </Text>
+                    </View>
+                  );
+                })()}
                 <View style={styles.itemActions}>
                   <TouchableOpacity style={styles.editButton} onPress={() => openEditModal(item)}>
                     <Text style={styles.editButtonText}>Edit</Text>
@@ -335,4 +353,6 @@ const styles = StyleSheet.create({
   submitButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   cancelButton: { alignItems: "center", padding: 12, marginBottom: 24 },
   cancelButtonText: { color: "#888", fontSize: 14 },
+  cpwBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, marginTop: 4, alignSelf: "flex-start" },
+  cpwBadgeText: { fontSize: 11, fontWeight: "bold" },
 });

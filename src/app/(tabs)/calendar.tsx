@@ -98,14 +98,19 @@ export default function Calendar() {
     const { error: itemsError } = await supabase.from("outfit_log_items").insert(logItems);
     if (itemsError) { Alert.alert("Error", itemsError.message); return; }
     for (const itemId of selectedItems) {
-      const item = wardrobe.find(w => w.id === itemId);
-      if (item) {
+      const { data: fresh } = await supabase
+        .from("clothing_items")
+        .select("wear_count")
+        .eq("id", itemId)
+        .single();
+      if (fresh) {
         await supabase
           .from("clothing_items")
-          .update({ wear_count: item.wear_count + 1 })
+          .update({ wear_count: fresh.wear_count + 1 })
           .eq("id", itemId);
       }
     }
+    fetchWardrobe();
     setModalVisible(false);
     setSelectedItems([]);
     setNotes("");
@@ -113,14 +118,28 @@ export default function Calendar() {
   };
 
   const handleDeleteLog = async (logId: string) => {
-    Alert.alert("Delete Log", "Delete this outfit log? This cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: async () => {
-        const { error } = await supabase.from("outfit_logs").delete().eq("id", logId);
-        if (error) Alert.alert("Error", error.message);
-        else fetchLogs();
-      }},
-    ]);
+    const confirmed = window.confirm("Delete this outfit log? This cannot be undone.");
+    if (confirmed) {
+      const log = logs.find(l => l.id === logId);
+      if (log) {
+        for (const item of log.items) {
+          const { data: fresh } = await supabase
+            .from("clothing_items")
+            .select("wear_count")
+            .eq("id", item.id)
+            .single();
+          if (fresh && fresh.wear_count > 0) {
+            await supabase
+              .from("clothing_items")
+              .update({ wear_count: fresh.wear_count - 1 })
+              .eq("id", item.id);
+          }
+        }
+      }
+      const { error } = await supabase.from("outfit_logs").delete().eq("id", logId);
+      if (error) Alert.alert("Error", error.message);
+      else fetchLogs();
+    }
   };
 
   const openEditLog = (log: OutfitLog) => {
@@ -136,6 +155,38 @@ export default function Calendar() {
       Alert.alert("Error", "Please select at least one item");
       return;
     }
+
+    const oldLog = logs.find(l => l.id === editingLogId);
+    if (oldLog) {
+      for (const item of oldLog.items) {
+        const { data: fresh } = await supabase
+          .from("clothing_items")
+          .select("wear_count")
+          .eq("id", item.id)
+          .single();
+        if (fresh && fresh.wear_count > 0) {
+          await supabase
+            .from("clothing_items")
+            .update({ wear_count: fresh.wear_count - 1 })
+            .eq("id", item.id);
+        }
+      }
+    }
+
+    for (const itemId of selectedItems) {
+      const { data: fresh } = await supabase
+        .from("clothing_items")
+        .select("wear_count")
+        .eq("id", itemId)
+        .single();
+      if (fresh) {
+        await supabase
+          .from("clothing_items")
+          .update({ wear_count: fresh.wear_count + 1 })
+          .eq("id", itemId);
+      }
+    }
+
     await supabase.from("outfit_log_items").delete().eq("outfit_log_id", editingLogId);
     const logItems = selectedItems.map(itemId => ({
       outfit_log_id: editingLogId,
@@ -144,6 +195,8 @@ export default function Calendar() {
     const { error } = await supabase.from("outfit_log_items").insert(logItems);
     if (error) { Alert.alert("Error", error.message); return; }
     await supabase.from("outfit_logs").update({ notes }).eq("id", editingLogId);
+
+    fetchWardrobe();
     setEditModalVisible(false);
     setSelectedItems([]);
     setNotes("");
@@ -272,13 +325,13 @@ export default function Calendar() {
       {/* Log Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <ScrollView style={styles.modalContent}>
             <Text style={styles.modalTitle}>Log Outfit</Text>
             <Text style={styles.modalDate}>
               {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </Text>
             <Text style={styles.label}>Select items worn:</Text>
-            <ScrollView style={styles.itemsList}>
+            <ScrollView style={styles.itemsList} nestedScrollEnabled>
               {wardrobe.map(item => (
                 <TouchableOpacity
                   key={item.id}
@@ -300,17 +353,17 @@ export default function Calendar() {
             <TouchableOpacity style={styles.cancelButton} onPress={() => { setModalVisible(false); setSelectedItems([]); }}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
       {/* Edit Modal */}
       <Modal visible={editModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <ScrollView style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Outfit Log</Text>
             <Text style={styles.label}>Select items worn:</Text>
-            <ScrollView style={styles.itemsList}>
+            <ScrollView style={styles.itemsList} nestedScrollEnabled>
               {wardrobe.map(item => (
                 <TouchableOpacity
                   key={item.id}
@@ -332,7 +385,7 @@ export default function Calendar() {
             <TouchableOpacity style={styles.cancelButton} onPress={() => { setEditModalVisible(false); setSelectedItems([]); }}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
