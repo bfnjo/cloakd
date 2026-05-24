@@ -1,34 +1,27 @@
 import { router } from "expo-router";
-import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useState } from "react";
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth } from "../firebaseConfig";
+import { auth } from "../../firebaseConfig";
 
-export default function Login() {
+export default function Signup() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        router.replace("/home");
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const handleSignup = async () => {
+    if (!name || !email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/home");
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      router.replace("/(tabs)/home");
     } catch (error: any) {
-      Alert.alert("Login Failed", error.message);
+      Alert.alert("Signup Failed", error.message);
     } finally {
       setLoading(false);
     }
@@ -37,13 +30,20 @@ export default function Login() {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../assets/images/logo.png")}
+        source={require("../../../assets/images/logo.png")} // ✅ fixed
         style={styles.logo}
         resizeMode="contain"
       />
 
-      <Text style={styles.tagline}>dress your best.</Text>
+      <Text style={styles.tagline}>create your account.</Text>
 
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        placeholderTextColor="#888"
+        value={name}
+        onChangeText={setName}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -62,12 +62,12 @@ export default function Login() {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Logging in..." : "Log In"}</Text>
+      <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? "Creating account..." : "Sign Up"}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/signup")}>
-        <Text style={styles.secondaryButtonText}>Create an account</Text>
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/(auth)")}>
+        <Text style={styles.secondaryButtonText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </View>
   );

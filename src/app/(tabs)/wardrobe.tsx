@@ -1,8 +1,8 @@
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth } from "../firebaseConfig";
-import { supabase } from "../supabaseConfig";
+import { auth } from "../../firebaseConfig";
+import { supabase } from "../../supabaseConfig";
 
 type ClothingItem = {
   id: string;
@@ -72,13 +72,11 @@ export default function Wardrobe() {
   }, []);
 
   const handleAddItem = async () => {
-    const user = await new Promise<any>((resolve) => {
-      const unsubscribe = auth.onAuthStateChanged((u) => {
-        unsubscribe();
-        resolve(u);
-      });
-    });
-    if (!user) return;
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Error", "Not logged in");
+      return;
+    }
     if (!form.name || !form.colour) {
       Alert.alert("Error", "Please fill in name and colour");
       return;
@@ -92,7 +90,7 @@ export default function Wardrobe() {
       material: form.material,
       brand: form.brand,
       price: parseFloat(form.price) || 0,
-    });
+    }).select();
     if (error) Alert.alert("Error", error.message);
     else {
       setModalVisible(false);
@@ -160,7 +158,7 @@ export default function Wardrobe() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace("/home")}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>My Wardrobe</Text>
@@ -168,7 +166,7 @@ export default function Wardrobe() {
           <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.addButtonText}>+ Add</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/profile")}>
+          <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/(tabs)/profile")}>
             <Text style={styles.profileText}>👤</Text>
           </TouchableOpacity>
         </View>
@@ -229,11 +227,10 @@ export default function Wardrobe() {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Clothing Item</Text>
-            <TextInput style={styles.input} placeholder="Name (e.g. White Tee)" placeholderTextColor="#888" value={form.name} onChangeText={t => setForm(f => ({ ...f, name: t }))} />
-            <TextInput style={styles.input} placeholder="Brand (e.g. Uniqlo)" placeholderTextColor="#888" value={form.brand} onChangeText={t => setForm(f => ({ ...f, brand: t }))} />
-            <TextInput style={styles.input} placeholder="Colour (e.g. White)" placeholderTextColor="#888" value={form.colour} onChangeText={t => setForm(f => ({ ...f, colour: t }))} />
-            <TextInput style={styles.input} placeholder="Material (e.g. Cotton)" placeholderTextColor="#888" value={form.material} onChangeText={t => setForm(f => ({ ...f, material: t }))} />
-            <TextInput style={styles.input} placeholder="Price (e.g. 29.90)" placeholderTextColor="#888" value={form.price} onChangeText={t => setForm(f => ({ ...f, price: t }))} keyboardType="numeric" />
+            <TextInput style={styles.input} placeholder="Name (e.g. White Tee)" placeholderTextColor="#888" value={form.name} onChangeText={t => setForm({ ...form, name: t })} />
+            <TextInput style={styles.input} placeholder="Colour (e.g. White)" placeholderTextColor="#888" value={form.colour} onChangeText={t => setForm({ ...form, colour: t })} />
+            <TextInput style={styles.input} placeholder="Material (e.g. Cotton)" placeholderTextColor="#888" value={form.material} onChangeText={t => setForm({ ...form, material: t })} />
+            <TextInput style={styles.input} placeholder="Price (e.g. 29.90)" placeholderTextColor="#888" value={form.price} onChangeText={t => setForm({ ...form, price: t })} keyboardType="numeric" />
             <Text style={styles.label}>Category</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
               {["Tops", "Bottoms", "Outerwear", "Footwear", "Accessories"].map(cat => (
@@ -242,18 +239,6 @@ export default function Wardrobe() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            {subcategories[form.category] && (
-              <>
-                <Text style={styles.label}>Type</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                  {subcategories[form.category].map(sub => (
-                    <TouchableOpacity key={sub} style={[styles.filterChip, form.subcategory === sub && styles.filterChipActive]} onPress={() => setForm(f => ({ ...f, subcategory: sub }))}>
-                      <Text style={[styles.filterChipText, form.subcategory === sub && styles.filterChipTextActive]}>{sub}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </>
-            )}
             <TouchableOpacity style={styles.submitButton} onPress={handleAddItem}>
               <Text style={styles.submitButtonText}>Add to Wardrobe</Text>
             </TouchableOpacity>

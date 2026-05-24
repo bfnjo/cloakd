@@ -44,3 +44,7 @@ example
 
 .env
 CLAUDE.md
+
+#API keys
+firebaseConfig.tsx
+supabaseConfig.tsx
