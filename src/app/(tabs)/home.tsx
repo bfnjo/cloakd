@@ -1,3 +1,4 @@
+import * as Location from "expo-location";
 import { router } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { auth } from "../../firebaseConfig";
 
 export default function Home() {
   const [userName, setUserName] = useState("");
+  const [weather, setWeather] = useState({ temp: "--", description: "Loading...", emoji: "🌤️" });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -18,11 +20,53 @@ export default function Home() {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    const fetchWeather = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setWeather({ temp: "--", description: "Location unavailable", emoji: "🌤️" });
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`
+      );
+      const data = await response.json();
+      const temp = Math.round(data.current.temperature_2m);
+      const code = data.current.weathercode;
+
+      const getWeatherInfo = (code: number) => {
+        if (code === 0) return { description: "Clear skies", emoji: "☀️" };
+        if (code <= 3) return { description: "Partly cloudy", emoji: "⛅" };
+        if (code <= 48) return { description: "Foggy", emoji: "🌫️" };
+        if (code <= 67) return { description: "Rainy", emoji: "🌧️" };
+        if (code <= 77) return { description: "Snowy", emoji: "❄️" };
+        if (code <= 82) return { description: "Showers", emoji: "🌦️" };
+        return { description: "Stormy", emoji: "⛈️" };
+      };
+
+      const { description, emoji } = getWeatherInfo(code);
+      setWeather({ temp: temp.toString(), description, emoji });
+    };
+
+    fetchWeather();
+  }, []);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
+  };
+
+  const getWeatherOutfitTip = (description: string) => {
+    if (description === "Clear skies") return "Great day for a casual fit";
+    if (description === "Partly cloudy") return "Light layers would work well";
+    if (description === "Rainy" || description === "Showers") return "Don't forget a jacket!";
+    if (description === "Stormy") return "Stay dry — layer up!";
+    if (description === "Foggy") return "A light layer would be perfect";
+    return "Dress for the weather!";
   };
 
   return (
@@ -47,8 +91,8 @@ export default function Home() {
       {/* Today's Weather Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Today's Weather</Text>
-        <Text style={styles.weatherText}>☀️ 28°C · Singapore</Text>
-        <Text style={styles.weatherSub}>Great day for a casual fit</Text>
+        <Text style={styles.weatherText}>{weather.emoji} {weather.temp}°C · Singapore</Text>
+        <Text style={styles.weatherSub}>{getWeatherOutfitTip(weather.description)}</Text>
       </View>
 
       {/* Quick Actions */}
