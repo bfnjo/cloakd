@@ -1,6 +1,8 @@
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
 
@@ -15,9 +17,11 @@ type ClothingItem = {
   id: string;
   name: string;
   category: string;
+  subcategory: string;
   colour: string;
   brand: string;
   wear_count: number;
+  image_url: string | null;
 };
 
 export default function Calendar() {
@@ -32,8 +36,21 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const categoryEmojis: Record<string, string> = {
-    Tops: "👕", Bottoms: "👖", Outerwear: "🧥", Footwear: "👟", Accessories: "🧢",
+  const ItemThumb = ({ item, size = 36 }: { item: ClothingItem; size?: number }) => {
+    if (item.image_url) {
+      return (
+        <Image
+          source={{ uri: item.image_url }}
+          style={{ width: size, height: size, borderRadius: 6, marginRight: 12 }}
+          contentFit="contain"
+        />
+      );
+    }
+    return (
+      <View style={{ width: size, height: size, marginRight: 12, alignItems: "center", justifyContent: "center" }}>
+        <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={size} />
+      </View>
+    );
   };
 
   const fetchLogs = async () => {
@@ -274,7 +291,7 @@ export default function Calendar() {
               style={[styles.dayCell, isToday && styles.dayCellToday, isSelected && styles.dayCellSelected]}
               onPress={() => setSelectedDate(dateStr)}
             >
-              <Text style={[styles.dayNumber, isToday && styles.dayNumberToday]}>{day}</Text>
+              <Text style={[styles.dayNumber, isToday && styles.dayNumberToday, isSelected && styles.dayNumberSelected]}>{day}</Text>
               {log && <View style={styles.logDot} />}
             </TouchableOpacity>
           );
@@ -300,7 +317,7 @@ export default function Calendar() {
               <View style={styles.logItems}>
                 {log.items.map(item => (
                   <View key={item.id} style={styles.logItem}>
-                    <Text style={styles.logItemEmoji}>{categoryEmojis[item.category] || "👕"}</Text>
+                    <ItemThumb item={item} size={36} />
                     <View>
                       <Text style={styles.logItemName}>{item.name}</Text>
                       <Text style={styles.logItemDetail}>{item.colour} · {item.category}</Text>
@@ -338,7 +355,7 @@ export default function Calendar() {
                   style={[styles.itemRow, selectedItems.includes(item.id) && styles.itemRowSelected]}
                   onPress={() => toggleItem(item.id)}
                 >
-                  <Text style={styles.itemRowEmoji}>{categoryEmojis[item.category] || "👕"}</Text>
+                  <ItemThumb item={item} size={36} />
                   <View style={styles.itemRowInfo}>
                     <Text style={styles.itemRowName}>{item.name}</Text>
                     <Text style={styles.itemRowDetail}>{item.colour} · {item.category}</Text>
@@ -370,7 +387,7 @@ export default function Calendar() {
                   style={[styles.itemRow, selectedItems.includes(item.id) && styles.itemRowSelected]}
                   onPress={() => toggleItem(item.id)}
                 >
-                  <Text style={styles.itemRowEmoji}>{categoryEmojis[item.category] || "👕"}</Text>
+                  <ItemThumb item={item} size={36} />
                   <View style={styles.itemRowInfo}>
                     <Text style={styles.itemRowName}>{item.name}</Text>
                     <Text style={styles.itemRowDetail}>{item.colour} · {item.category}</Text>
@@ -410,6 +427,7 @@ const styles = StyleSheet.create({
   dayCellSelected: { backgroundColor: "#7B7FE8" },
   dayNumber: { color: "#fff", fontSize: 13 },
   dayNumberToday: { color: "#7B7FE8", fontWeight: "bold" },
+  dayNumberSelected: { color: "#fff" },
   logDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: "#7B7FE8", marginTop: 2 },
   logsSection: { flex: 1 },
   sectionTitle: { color: "#fff", fontSize: 16, fontWeight: "bold", marginBottom: 16 },
@@ -419,7 +437,7 @@ const styles = StyleSheet.create({
   logCard: { backgroundColor: "#111", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#222" },
   logItems: { gap: 12 },
   logItem: { flexDirection: "row", alignItems: "center", gap: 12 },
-  logItemEmoji: { fontSize: 24 },
+  logItemEmoji: {},
   logItemName: { color: "#fff", fontSize: 14, fontWeight: "bold" },
   logItemDetail: { color: "#888", fontSize: 12 },
   logNotes: { color: "#888", fontSize: 13, marginTop: 12, fontStyle: "italic" },
@@ -436,7 +454,7 @@ const styles = StyleSheet.create({
   itemsList: { maxHeight: 300, marginBottom: 16 },
   itemRow: { flexDirection: "row", alignItems: "center", padding: 12, borderRadius: 12, marginBottom: 8, backgroundColor: "#1a1a1a", borderWidth: 1, borderColor: "#222" },
   itemRowSelected: { borderColor: "#7B7FE8", backgroundColor: "#1a1a2e" },
-  itemRowEmoji: { fontSize: 24, marginRight: 12 },
+  itemRowEmoji: {},
   itemRowInfo: { flex: 1 },
   itemRowName: { color: "#fff", fontSize: 14, fontWeight: "bold" },
   itemRowDetail: { color: "#888", fontSize: 12 },

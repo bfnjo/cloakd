@@ -1,8 +1,23 @@
+import * as ImagePicker from "expo-image-picker";
+import { FileSystemUploadType, uploadAsync } from "expo-file-system/legacy";
+import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
+import { removeBackground } from "../../utils/backgroundRemoval";
 
 type ClothingItem = {
   id: string;
@@ -14,7 +29,7 @@ type ClothingItem = {
   brand: string;
   price: number;
   wear_count: number;
-  image_url: string;
+  image_url: string | null;
 };
 
 const subcategories: Record<string, string[]> = {
@@ -25,14 +40,6 @@ const subcategories: Record<string, string[]> = {
   Accessories: ["Hat", "Belt", "Bag", "Watch", "Sunglasses", "Scarf"],
 };
 
-const categoryEmojis: Record<string, string> = {
-  Tops: "👕",
-  Bottoms: "👖",
-  Outerwear: "🧥",
-  Footwear: "👟",
-  Accessories: "🧢",
-};
-
 export default function Wardrobe() {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +47,8 @@ export default function Wardrobe() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [pendingImageUri, setPendingImageUri] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     category: "Tops",
@@ -75,18 +84,80 @@ export default function Wardrobe() {
       fetchItems();
     }, [])
   );
-    
+
+  // ── Image capture ────────────────────────────────────────────────────────────
+
+  async function pickImage(source: "camera" | "library") {
+    const permResult = source === "camera"
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permResult.granted) {
+      Alert.alert("Permission required", `Please allow ${source === "camera" ? "camera" : "photo library"} access in settings.`);
+      return;
+    }
+
+    const result = source === "camera"
+      ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.85 })
+      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.85 });
+
+    if (!result.canceled && result.assets[0]) {
+      setPendingImageUri(result.assets[0].uri);
+    }
+  }
+
+  async function uploadImage(localUri: string, userId: string): Promise<string | null> {
+    try {
+      setUploadingImage(true);
+      const processedUri = await removeBackground(localUri);
+      const fileName = `${userId}_${Date.now()}.png`;
+
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+      const uploadResult = await uploadAsync(
+        `${supabaseUrl}/storage/v1/object/clothing-images/${fileName}`,
+        processedUri,
+        {
+          httpMethod: "POST",
+          uploadType: FileSystemUploadType.BINARY_CONTENT,
+          headers: {
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "image/png",
+            "x-upsert": "true",
+          },
+        }
+      );
+
+      if (uploadResult.status < 200 || uploadResult.status >= 300) {
+        throw new Error(`Upload failed (${uploadResult.status}): ${uploadResult.body}`);
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("clothing-images")
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (err: any) {
+      Alert.alert("Image upload failed", err.message);
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
+  // ── CRUD ─────────────────────────────────────────────────────────────────────
 
   const handleAddItem = async () => {
     const user = auth.currentUser;
-    if (!user) {
-      Alert.alert("Error", "Not logged in");
-      return;
+    if (!user) { Alert.alert("Error", "Not logged in"); return; }
+    if (!form.name || !form.colour) { Alert.alert("Error", "Please fill in name and colour"); return; }
+
+    let imageUrl: string | null = null;
+    if (pendingImageUri) {
+      imageUrl = await uploadImage(pendingImageUri, user.uid);
     }
-    if (!form.name || !form.colour) {
-      Alert.alert("Error", "Please fill in name and colour");
-      return;
-    }
+
     const { error } = await supabase.from("clothing_items").insert({
       user_id: user.uid,
       name: form.name,
@@ -96,10 +167,13 @@ export default function Wardrobe() {
       material: form.material,
       brand: form.brand,
       price: parseFloat(form.price) || 0,
+      image_url: imageUrl,
     }).select();
+
     if (error) Alert.alert("Error", error.message);
     else {
       setModalVisible(false);
+      setPendingImageUri(null);
       setForm({ name: "", category: "Tops", subcategory: "", colour: "", material: "", brand: "", price: "" });
       fetchItems();
     }
@@ -107,10 +181,15 @@ export default function Wardrobe() {
 
   const handleEditItem = async () => {
     if (!selectedItem) return;
-    if (!form.name || !form.colour) {
-      Alert.alert("Error", "Please fill in name and colour");
-      return;
+    const user = auth.currentUser;
+    if (!user) return;
+    if (!form.name || !form.colour) { Alert.alert("Error", "Please fill in name and colour"); return; }
+
+    let imageUrl = selectedItem.image_url;
+    if (pendingImageUri) {
+      imageUrl = await uploadImage(pendingImageUri, user.uid);
     }
+
     const { error } = await supabase
       .from("clothing_items")
       .update({
@@ -121,11 +200,14 @@ export default function Wardrobe() {
         material: form.material,
         brand: form.brand,
         price: parseFloat(form.price) || 0,
+        image_url: imageUrl,
       })
       .eq("id", selectedItem.id);
+
     if (error) Alert.alert("Error", error.message);
     else {
       setEditModalVisible(false);
+      setPendingImageUri(null);
       setSelectedItem(null);
       fetchItems();
     }
@@ -134,10 +216,7 @@ export default function Wardrobe() {
   const handleDeleteItem = async (item: ClothingItem) => {
     const confirmed = window.confirm(`Delete ${item.name}? This cannot be undone.`);
     if (confirmed) {
-      const { error } = await supabase
-        .from("clothing_items")
-        .delete()
-        .eq("id", item.id);
+      const { error } = await supabase.from("clothing_items").delete().eq("id", item.id);
       if (error) Alert.alert("Error", error.message);
       else fetchItems();
     }
@@ -145,6 +224,7 @@ export default function Wardrobe() {
 
   const openEditModal = (item: ClothingItem) => {
     setSelectedItem(item);
+    setPendingImageUri(null);
     setForm({
       name: item.name,
       category: item.category,
@@ -162,10 +242,76 @@ export default function Wardrobe() {
     : items.filter(item => item.category === selectedCategory);
 
   const getCPWColour = (cpw: number) => {
-    if (cpw < 1) return { color: "#00cc44", background: "#0a2a0a", border: "#00ff0033" }
-    if (cpw < 5) return { color: "#ffaa00", background: "#2a1a00", border: "#ffaa0033" }
-    return { color: "#ff4444", background: "#1a0000", border: "#ff000033" }
+    if (cpw < 1) return { color: "#00cc44", background: "#0a2a0a", border: "#00ff0033" };
+    if (cpw < 5) return { color: "#ffaa00", background: "#2a1a00", border: "#ffaa0033" };
+    return { color: "#ff4444", background: "#1a0000", border: "#ff000033" };
   };
+
+  // ── Image picker UI (shared between add & edit modals) ────────────────────
+
+  const ImagePickerSection = ({ existingUrl }: { existingUrl?: string | null }) => {
+    const preview = pendingImageUri || existingUrl;
+    return (
+      <View style={styles.imageSection}>
+        <Text style={styles.label}>Photo (optional)</Text>
+        {preview ? (
+          <View style={styles.imagePreviewWrapper}>
+            <Image
+              source={{ uri: preview }}
+              style={styles.imagePreview}
+              contentFit="contain"
+            />
+            <TouchableOpacity
+              style={styles.removeImageBtn}
+              onPress={() => setPendingImageUri(null)}
+            >
+              <Text style={styles.removeImageText}>✕ Remove</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.imageButtons}>
+            <TouchableOpacity style={styles.imageBtn} onPress={() => pickImage("camera")}>
+              <Text style={styles.imageBtnIcon}>📷</Text>
+              <Text style={styles.imageBtnText}>Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.imageBtn} onPress={() => pickImage("library")}>
+              <Text style={styles.imageBtnIcon}>🖼️</Text>
+              <Text style={styles.imageBtnText}>Library</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {!preview && (
+          <Text style={styles.imageHint}>
+            Background is automatically removed. Requires EXPO_PUBLIC_REMOVEBG_API_KEY.
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  // ── Item card image/icon ───────────────────────────────────────────────────
+
+  const ItemImage = ({ item }: { item: ClothingItem }) => {
+    if (item.image_url) {
+      return (
+        <Image
+          source={{ uri: item.image_url }}
+          style={styles.itemPhoto}
+          contentFit="contain"
+        />
+      );
+    }
+    return (
+      <ClothingIcon
+        category={item.category}
+        subcategory={item.subcategory}
+        colour={item.colour}
+        size={70}
+      />
+    );
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <View style={styles.container}>
@@ -175,10 +321,14 @@ export default function Wardrobe() {
         </TouchableOpacity>
         <Text style={styles.title}>My Wardrobe</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.addButton} onPress={() => {
-            setForm({ name: "", category: "", subcategory: "", colour: "", material:"", brand: "", price: ""});
-            setModalVisible(true)
-          }}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => {
+              setForm({ name: "", category: "Tops", subcategory: "", colour: "", material: "", brand: "", price: "" });
+              setPendingImageUri(null);
+              setModalVisible(true);
+            }}
+          >
             <Text style={styles.addButtonText}>+ Add</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/(tabs)/profile")}>
@@ -212,7 +362,7 @@ export default function Wardrobe() {
             {filteredItems.map(item => (
               <View key={item.id} style={styles.itemCard}>
                 <View style={styles.itemImagePlaceholder}>
-                  <Text style={styles.itemEmoji}>{categoryEmojis[item.category] || "👕"}</Text>
+                  <ItemImage item={item} />
                 </View>
                 <Text style={styles.itemName}>{item.name}</Text>
                 {item.brand ? <Text style={styles.itemBrand}>{item.brand}</Text> : null}
@@ -248,6 +398,7 @@ export default function Wardrobe() {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Clothing Item</Text>
+            <ImagePickerSection />
             <TextInput style={styles.input} placeholder="Name (e.g. White Tee)" placeholderTextColor="#888" value={form.name} onChangeText={t => setForm({ ...form, name: t })} />
             <TextInput style={styles.input} placeholder="Colour (e.g. White)" placeholderTextColor="#888" value={form.colour} onChangeText={t => setForm({ ...form, colour: t })} />
             <TextInput style={styles.input} placeholder="Brand (e.g. Uniqlo)" placeholderTextColor="#888" value={form.brand} onChangeText={t => setForm({ ...form, brand: t })} />
@@ -273,10 +424,13 @@ export default function Wardrobe() {
                 </ScrollView>
               </>
             )}
-            <TouchableOpacity style={styles.submitButton} onPress={handleAddItem}>
-              <Text style={styles.submitButtonText}>Add to Wardrobe</Text>
+            <TouchableOpacity style={[styles.submitButton, uploadingImage && styles.submitButtonDisabled]} onPress={handleAddItem} disabled={uploadingImage}>
+              {uploadingImage
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.submitButtonText}>Add to Wardrobe</Text>
+              }
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => { setModalVisible(false); setPendingImageUri(null); }}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -288,6 +442,7 @@ export default function Wardrobe() {
         <View style={styles.modalOverlay}>
           <ScrollView style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Clothing Item</Text>
+            <ImagePickerSection existingUrl={selectedItem?.image_url} />
             <TextInput style={styles.input} placeholder="Name (e.g. White Tee)" placeholderTextColor="#888" value={form.name} onChangeText={t => setForm(f => ({ ...f, name: t }))} />
             <TextInput style={styles.input} placeholder="Brand (e.g. Uniqlo)" placeholderTextColor="#888" value={form.brand} onChangeText={t => setForm(f => ({ ...f, brand: t }))} />
             <TextInput style={styles.input} placeholder="Colour (e.g. White)" placeholderTextColor="#888" value={form.colour} onChangeText={t => setForm(f => ({ ...f, colour: t }))} />
@@ -313,10 +468,13 @@ export default function Wardrobe() {
                 </ScrollView>
               </>
             )}
-            <TouchableOpacity style={styles.submitButton} onPress={handleEditItem}>
-              <Text style={styles.submitButtonText}>Save Changes</Text>
+            <TouchableOpacity style={[styles.submitButton, uploadingImage && styles.submitButtonDisabled]} onPress={handleEditItem} disabled={uploadingImage}>
+              {uploadingImage
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.submitButtonText}>Save Changes</Text>
+              }
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setEditModalVisible(false)}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => { setEditModalVisible(false); setPendingImageUri(null); }}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -344,13 +502,12 @@ const styles = StyleSheet.create({
   grid: { flex: 1 },
   itemsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   itemCard: { backgroundColor: "#111", borderRadius: 16, padding: 16, width: "48%", marginBottom: 16, borderWidth: 1, borderColor: "#222" },
-  itemImagePlaceholder: { backgroundColor: "#222", borderRadius: 12, height: 100, alignItems: "center", justifyContent: "center", marginBottom: 12 },
-  itemEmoji: { fontSize: 40 },
+  itemImagePlaceholder: { backgroundColor: "#2e2e3a", borderRadius: 12, height: 100, alignItems: "center", justifyContent: "center", marginBottom: 12 },
+  itemPhoto: { width: "100%", height: "100%", borderRadius: 12 },
   itemName: { fontSize: 14, fontWeight: "bold", color: "#fff", marginBottom: 2 },
   itemBrand: { fontSize: 12, color: "#7B7FE8", marginBottom: 2 },
   itemDetail: { fontSize: 12, color: "#888", marginBottom: 4 },
   itemWears: { fontSize: 12, color: "#7B7FE8" },
-  itemCPW: { fontSize: 12, color: "#888", marginTop: 2 },
   itemActions: { flexDirection: "row", gap: 8, marginTop: 12 },
   editButton: { flex: 1, backgroundColor: "#1a1a2e", padding: 8, borderRadius: 8, alignItems: "center", borderWidth: 1, borderColor: "#7B7FE8" },
   editButtonText: { color: "#7B7FE8", fontSize: 12, fontWeight: "bold" },
@@ -366,9 +523,21 @@ const styles = StyleSheet.create({
   label: { color: "#888", fontSize: 13, marginBottom: 8, marginTop: 4 },
   chipRow: { marginBottom: 16, flexGrow: 0 },
   submitButton: { backgroundColor: "#7B7FE8", padding: 16, borderRadius: 12, alignItems: "center", marginBottom: 12, marginTop: 8 },
+  submitButtonDisabled: { opacity: 0.5 },
   submitButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   cancelButton: { alignItems: "center", padding: 12, marginBottom: 24 },
   cancelButtonText: { color: "#888", fontSize: 14 },
   cpwBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, marginTop: 4, alignSelf: "flex-start" },
   cpwBadgeText: { fontSize: 11, fontWeight: "bold" },
+  // Image picker
+  imageSection: { marginBottom: 16 },
+  imageButtons: { flexDirection: "row", gap: 12 },
+  imageBtn: { flex: 1, backgroundColor: "#1a1a1a", borderRadius: 12, borderWidth: 1, borderColor: "#333", padding: 14, alignItems: "center", gap: 6 },
+  imageBtnIcon: { fontSize: 24 },
+  imageBtnText: { color: "#aaa", fontSize: 13 },
+  imagePreviewWrapper: { alignItems: "center", gap: 8 },
+  imagePreview: { width: "100%", height: 160, borderRadius: 12, backgroundColor: "#1a1a1a" },
+  removeImageBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: "#1a0000", borderWidth: 1, borderColor: "#ff000033" },
+  removeImageText: { color: "#ff4444", fontSize: 12 },
+  imageHint: { color: "#555", fontSize: 11, marginTop: 6, textAlign: "center" },
 });

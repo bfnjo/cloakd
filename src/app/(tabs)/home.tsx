@@ -3,16 +3,27 @@ import { router } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
+import { supabase } from "../../supabaseConfig";
+
+type RecentOutfit = {
+  id: string;
+  date: string;
+  items: { id: string; name: string; category: string; subcategory: string; colour: string }[];
+};
 
 export default function Home() {
   const [userName, setUserName] = useState("");
-  const [weather, setWeather] = useState({ temp: "--", description: "Loading...", emoji: "🌤️" });
+  const [weather, setWeather] = useState({ temp: "--", description: "Loading...", emoji: "🌤️", city: "..." });
+  const [recentOutfits, setRecentOutfits] = useState<RecentOutfit[]>([]);
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserName(user.displayName || "there");
+        fetchRecentOutfits(user.uid);
       } else {
         router.replace("/(auth)");
       }
@@ -20,15 +31,35 @@ export default function Home() {
     return unsubscribe;
   }, []);
 
+  const fetchRecentOutfits = async (uid: string) => {
+    const { data, error } = await supabase
+      .from("outfit_logs")
+      .select(`*, outfit_log_items(clothing_item_id, clothing_items(*))`)
+      .eq("user_id", uid)
+      .order("date", { ascending: false })
+      .limit(3);
+    if (error) { console.log("Error fetching outfits:", error.message); return; }
+    const formatted = (data || []).map((log: any) => ({
+      id: log.id,
+      date: log.date,
+      items: log.outfit_log_items.map((oli: any) => oli.clothing_items),
+    }));
+    setRecentOutfits(formatted);
+  };
+
   useEffect(() => {
     const fetchWeather = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setWeather({ temp: "--", description: "Location unavailable", emoji: "🌤️" });
+        setWeather({ temp: "--", description: "Location unavailable", emoji: "🌤️", city: "Unknown" });
         return;
       }
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
+
+      const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+      const city = geocode[0]?.city || geocode[0]?.region || "Unknown";
+
       const response = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`
       );
@@ -47,7 +78,7 @@ export default function Home() {
       };
 
       const { description, emoji } = getWeatherInfo(code);
-      setWeather({ temp: temp.toString(), description, emoji });
+      setWeather({ temp: temp.toString(), description, emoji, city });
     };
 
     fetchWeather();
@@ -67,6 +98,12 @@ export default function Home() {
     if (description === "Stormy") return "Stay dry — layer up!";
     if (description === "Foggy") return "A light layer would be perfect";
     return "Dress for the weather!";
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
+      weekday: "short", month: "short", day: "numeric"
+    });
   };
 
   return (
@@ -91,7 +128,7 @@ export default function Home() {
       {/* Today's Weather Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Today's Weather</Text>
-        <Text style={styles.weatherText}>{weather.emoji} {weather.temp}°C · Singapore</Text>
+        <Text style={styles.weatherText}>{weather.emoji} {weather.temp}°C · {weather.city}</Text>
         <Text style={styles.weatherSub}>{getWeatherOutfitTip(weather.description)}</Text>
       </View>
 
@@ -124,10 +161,26 @@ export default function Home() {
 
       {/* Recent Outfits */}
       <Text style={styles.sectionTitle}>Recent Outfits</Text>
-      <View style={styles.emptyCard}>
-        <Text style={styles.emptyText}>No outfits logged yet.</Text>
-        <Text style={styles.emptySubtext}>Start by building your first outfit!</Text>
-      </View>
+      {recentOutfits.length === 0 ? (
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyText}>No outfits logged yet.</Text>
+          <Text style={styles.emptySubtext}>Start by building your first outfit!</Text>
+        </View>
+      ) : (
+        recentOutfits.map(outfit => (
+          <View key={outfit.id} style={styles.outfitCard}>
+            <Text style={styles.outfitDate}>{formatDate(outfit.date)}</Text>
+            <View style={styles.outfitItems}>
+              {outfit.items.map(item => (
+                <View key={item.id} style={styles.outfitItem}>
+                  <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={22} />
+                  <Text style={styles.outfitItemName}>{item.name}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ))
+      )}
 
     </ScrollView>
   );
@@ -210,9 +263,11 @@ const styles = StyleSheet.create({
   actionButton: {
     backgroundColor: "#111",
     borderRadius: 16,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
     alignItems: "center",
-    width: "23%",
+    flex: 1,
+    marginHorizontal: 3,
     borderWidth: 1,
     borderColor: "#222",
   },
@@ -222,8 +277,9 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontSize: 11,
-    color: "#888",
+    color: "#aaa",
     textAlign: "center",
+    fontWeight: "bold",
   },
   streakCard: {
     backgroundColor: "#1a0f00",
@@ -262,5 +318,40 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 13,
     color: "#888",
+  },
+  outfitCard: {
+    backgroundColor: "#111",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#222",
+  },
+  outfitDate: {
+    fontSize: 13,
+    color: "#7B7FE8",
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  outfitItems: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  outfitItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1a1a1a",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  outfitItemEmoji: {
+    fontSize: 16,
+  },
+  outfitItemName: {
+    fontSize: 12,
+    color: "#fff",
   },
 });
