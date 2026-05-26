@@ -19,7 +19,7 @@ type ClothingItem = {
 
 const subcategories: Record<string, string[]> = {
   Tops: ["Round Neck", "Polo", "Henley", "Button Up", "Hoodie", "Tank Top", "Crewneck"],
-  Bottoms: ["Skinny Jeans", "Straight Cut", "Carpenter", "Shorts", "Chinos", "Sweatpants", "Cargo"],
+  Bottoms: ["Skinny Jeans", "Straight Cut", "Baggy Jeans", "Carpenter", "Shorts", "Chinos", "Sweatpants", "Cargo"],
   Outerwear: ["Jacket", "Coat", "Blazer", "Windbreaker", "Puffer"],
   Footwear: ["Sneakers", "Boots", "Loafers", "Sandals", "Dress Shoes"],
   Accessories: ["Hat", "Belt", "Bag", "Watch", "Sunglasses", "Scarf"],
@@ -175,7 +175,10 @@ export default function Wardrobe() {
         </TouchableOpacity>
         <Text style={styles.title}>My Wardrobe</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+          <TouchableOpacity style={styles.addButton} onPress={() => {
+            setForm({ name: "", category: "", subcategory: "", colour: "", material:"", brand: "", price: ""});
+            setModalVisible(true)
+          }}>
             <Text style={styles.addButtonText}>+ Add</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/(tabs)/profile")}>
@@ -247,6 +250,7 @@ export default function Wardrobe() {
             <Text style={styles.modalTitle}>Add Clothing Item</Text>
             <TextInput style={styles.input} placeholder="Name (e.g. White Tee)" placeholderTextColor="#888" value={form.name} onChangeText={t => setForm({ ...form, name: t })} />
             <TextInput style={styles.input} placeholder="Colour (e.g. White)" placeholderTextColor="#888" value={form.colour} onChangeText={t => setForm({ ...form, colour: t })} />
+            <TextInput style={styles.input} placeholder="Brand (e.g. Uniqlo)" placeholderTextColor="#888" value={form.brand} onChangeText={t => setForm({ ...form, brand: t })} />
             <TextInput style={styles.input} placeholder="Material (e.g. Cotton)" placeholderTextColor="#888" value={form.material} onChangeText={t => setForm({ ...form, material: t })} />
             <TextInput style={styles.input} placeholder="Price (e.g. 29.90)" placeholderTextColor="#888" value={form.price} onChangeText={t => setForm({ ...form, price: t })} keyboardType="numeric" />
             <Text style={styles.label}>Category</Text>
@@ -257,6 +261,18 @@ export default function Wardrobe() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            {subcategories[form.category] && (
+              <>
+                <Text style={styles.label}>Type</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+                  {subcategories[form.category].map(sub => (
+                    <TouchableOpacity key={sub} style={[styles.filterChip, form.subcategory === sub && styles.filterChipActive]} onPress={() => setForm(f => ({ ...f, subcategory: sub }))}>
+                      <Text style={[styles.filterChipText, form.subcategory === sub && styles.filterChipTextActive]}>{sub}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
             <TouchableOpacity style={styles.submitButton} onPress={handleAddItem}>
               <Text style={styles.submitButtonText}>Add to Wardrobe</Text>
             </TouchableOpacity>

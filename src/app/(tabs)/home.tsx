@@ -118,7 +118,7 @@ export default function Home() {
 
       {/* Streak */}
       <View style={styles.streakCard}>
-        <Text style={styles.streakText}>🔥 7 day streak</Text>
+        <Text style={styles.streakText}>🔥 0 day streak</Text>
         <Text style={styles.streakSub}>Keep logging your outfits!</Text>
       </View>
 
