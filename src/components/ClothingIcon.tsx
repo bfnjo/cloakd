@@ -257,6 +257,55 @@ function JacketIcon({ fill, dark, light }: { fill: string; dark: string; light: 
   );
 }
 
+function SneakerIcon({ fill, dark, light }: { fill: string; dark: string; light: string }) {
+  return (
+    <>
+      <Rect x="5" y="44" width="91" height="10" rx="4" fill="#E6E6E6" />
+      <Rect x="5" y="54" width="91" height="5" rx="3" fill={darken(fill, 0.55)} />
+      <Path d="M 5,44 L 5,24 Q 8,12 22,12 Q 50,8 70,12 Q 88,14 96,34 L 96,44 Z" fill={fill} />
+      <Path d="M 5,44 L 5,24 Q 8,12 22,12 L 18,20 Q 12,24 10,32 L 10,44 Z" fill={dark} opacity={0.25} />
+      <Rect x="24" y="12" width="14" height="30" rx="3" fill={light} opacity={0.92} />
+      <Line x1="24" y1="18" x2="65" y2="14" stroke="#FFFFFF" strokeWidth="2.5" opacity={0.95} />
+      <Line x1="24" y1="25" x2="67" y2="21" stroke="#FFFFFF" strokeWidth="2.5" opacity={0.95} />
+      <Line x1="24" y1="32" x2="67" y2="28" stroke="#FFFFFF" strokeWidth="2.5" opacity={0.95} />
+      <Line x1="24" y1="40" x2="38" y2="40" stroke="#FFFFFF" strokeWidth="2" opacity={0.9} />
+      <Path d="M 82,16 Q 97,28 96,44 L 80,44 Q 82,30 78,20 Z" fill={light} opacity={0.22} />
+      <Path d="M 22,40 Q 56,34 92,42" stroke={dark} strokeWidth="1.5" fill="none" opacity={0.3} />
+    </>
+  );
+}
+
+function SandalIcon({ fill }: { fill: string }) {
+  const strap    = darken(fill, 0.45);
+  const soleEdge = darken(fill, 0.28);
+  return (
+    <>
+      <Ellipse cx="50" cy="51" rx="44" ry="12" fill={soleEdge} />
+      <Ellipse cx="50" cy="45" rx="44" ry="12" fill={fill} />
+      <Path d="M 62,42 Q 78,34 90,26" stroke={strap} strokeWidth="10" fill="none" strokeLinecap="round" />
+      <Path d="M 62,42 Q 38,36 16,36" stroke={strap} strokeWidth="10" fill="none" strokeLinecap="round" />
+      <Path d="M 62,42 Q 38,52 16,54" stroke={strap} strokeWidth="10" fill="none" strokeLinecap="round" />
+    </>
+  );
+}
+
+function LoaferIcon({ fill, dark, light }: { fill: string; dark: string; light: string }) {
+  return (
+    <>
+      <Path d="M 5,28 L 5,58 L 22,58 L 22,34 Z" fill={darken(fill, 0.54)} />
+      <Rect x="5" y="54" width="92" height="5" rx="2" fill={darken(fill, 0.5)} />
+      <Path d="M 5,50 L 5,28 Q 8,14 24,14 Q 52,10 76,18 Q 92,28 97,42 L 97,50 Z" fill={fill} />
+      <Rect x="5" y="50" width="92" height="4" rx="0" fill={darken(fill, 0.3)} opacity={0.45} />
+      <Path d="M 82,22 Q 97,34 97,48 L 82,48 Q 82,36 78,26 Z" fill={light} opacity={0.18} />
+      <Path d="M 28,16 Q 54,4 80,14 L 78,32 Q 54,18 30,30 Z" fill={darken(fill, 0.3)} />
+      <Path d="M 28,16 Q 54,4 80,14" stroke={light} strokeWidth="1.5" fill="none" opacity={0.38} strokeDasharray="3,2" />
+      <Path d="M 30,30 Q 54,18 78,32" stroke={light} strokeWidth="1.5" fill="none" opacity={0.38} strokeDasharray="3,2" />
+      <Rect x="46" y="5" width="16" height="12" rx="2" fill={darken(fill, 0.58)} />
+      <Path d="M 22,40 Q 58,34 90,42" stroke={dark} strokeWidth="1.5" fill="none" opacity={0.28} />
+    </>
+  );
+}
+
 function CoatIcon({ fill, dark }: { fill: string; dark: string }) {
   return (
     <>
@@ -272,32 +321,6 @@ function CoatIcon({ fill, dark }: { fill: string; dark: string }) {
       <Circle cx="50" cy="66" r="3" fill={dark} opacity={0.6} />
       <Circle cx="50" cy="78" r="3" fill={dark} opacity={0.6} />
       <Circle cx="50" cy="90" r="3" fill={dark} opacity={0.6} />
-    </>
-  );
-}
-
-function SneakerIcon({ fill, dark }: { fill: string; dark: string }) {
-  return (
-    <>
-      {/* Sole */}
-      <Path d="M 4,72 Q 4,82 16,84 L 88,84 Q 98,82 96,72 Z" fill={darken(fill, 0.4)} />
-      {/* Upper */}
-      <Path
-        d="M 6,68 Q 8,46 20,40 L 45,34 Q 68,28 84,38 Q 96,48 96,68 Z"
-        fill={fill}
-      />
-      {/* Toe cap */}
-      <Path
-        d="M 84,38 Q 96,48 96,60 Q 86,52 72,50"
-        fill={dark}
-        opacity={0.3}
-      />
-      {/* Lace panel */}
-      <Rect x="28" y="38" width="38" height="22" rx="3" fill={dark} opacity={0.15} />
-      {/* Laces */}
-      <Line x1="30" y1="44" x2="64" y2="42" stroke={dark} strokeWidth="2" opacity={0.5} />
-      <Line x1="30" y1="50" x2="64" y2="48" stroke={dark} strokeWidth="2" opacity={0.5} />
-      <Line x1="30" y1="56" x2="64" y2="54" stroke={dark} strokeWidth="2" opacity={0.5} />
     </>
   );
 }
@@ -451,7 +474,9 @@ function getShapeType(category: string, subcategory: string) {
   if (["jacket", "windbreaker", "blazer"].includes(sub)) return "jacket";
   if (["coat", "puffer"].includes(sub)) return "coat";
   if (sub === "boots") return "boot";
-  if (["sneakers", "loafers", "sandals", "dress shoes"].includes(sub)) return "sneaker";
+  if (sub === "sneakers") return "sneaker";
+  if (sub === "sandals") return "sandal";
+  if (["loafers", "dress shoes"].includes(sub)) return "loafer";
   if (sub === "hat") return "hat";
   if (sub === "belt") return "belt";
   if (sub === "bag") return "bag";
@@ -473,11 +498,15 @@ export default function ClothingIcon({ category, subcategory, colour, size = 80 
   const light = lighten(hex);
   const patternId = `camo_${category}_${subcategory}`.replace(/\s/g, "_");
   const shape = getShapeType(category, subcategory);
-
   const fillProp = isCamo ? `url(#${patternId})` : hex;
 
+  const isLandscapeShoe = shape === "sneaker" || shape === "sandal" || shape === "loafer";
+  const svgWidth  = size;
+  const svgHeight = isLandscapeShoe ? Math.round(size * 0.6) : size;
+  const viewBox   = isLandscapeShoe ? "0 0 100 60" : "0 0 100 100";
+
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100">
+    <Svg width={svgWidth} height={svgHeight} viewBox={viewBox}>
       {isCamo && <CamoPattern id={patternId} />}
       {shape === "tshirt" && <TShirtIcon fill={fillProp} dark={dark} />}
       {shape === "polo" && <PoloIcon fill={fillProp} dark={dark} />}
@@ -487,7 +516,9 @@ export default function ClothingIcon({ category, subcategory, colour, size = 80 
       {shape === "shorts" && <ShortsIcon fill={fillProp} dark={dark} />}
       {shape === "jacket" && <JacketIcon fill={fillProp} dark={dark} light={light} />}
       {shape === "coat" && <CoatIcon fill={fillProp} dark={dark} />}
-      {shape === "sneaker" && <SneakerIcon fill={fillProp} dark={dark} />}
+      {shape === "sneaker" && <SneakerIcon fill={fillProp} dark={dark} light={light} />}
+      {shape === "sandal" && <SandalIcon fill={fillProp} />}
+      {shape === "loafer" && <LoaferIcon fill={fillProp} dark={dark} light={light} />}
       {shape === "boot" && <BootIcon fill={fillProp} dark={dark} />}
       {shape === "hat" && <HatIcon fill={fillProp} dark={dark} />}
       {shape === "belt" && <BeltIcon fill={fillProp} dark={dark} />}

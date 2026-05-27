@@ -112,7 +112,7 @@ export default function Home() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require("../../../assets/images/logo.png")}
+          source={require("../../../assets/images/cloakd_images/logo.png")}
           style={styles.logo}
           resizeMode="contain"
         />

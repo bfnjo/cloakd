@@ -30,6 +30,7 @@ type ClothingItem = {
   price: number;
   wear_count: number;
   image_url: string | null;
+  created_at: string;
 };
 
 const subcategories: Record<string, string[]> = {
@@ -40,8 +41,68 @@ const subcategories: Record<string, string[]> = {
   Accessories: ["Hat", "Belt", "Bag", "Watch", "Sunglasses", "Scarf"],
 };
 
+// ─── Forgotten Pieces Section ────────────────────────────────────────────────
+// Displays clothing items not worn in 30+ days.
+// onItemPress is intentionally optional — wire it up when the outfit builder
+// is ready to accept pre-filled items (e.g. navigate to builder with item id).
+
+type ForgottenPiecesSectionProps = {
+  items: ClothingItem[];
+  lastWornMap: Record<string, string>;
+  expanded: boolean;
+  onToggle: () => void;
+  onItemPress?: (item: ClothingItem) => void;
+};
+
+function ForgottenPiecesSection({ items, lastWornMap, expanded, onToggle, onItemPress }: ForgottenPiecesSectionProps) {
+  if (items.length === 0) return null;
+  return (
+    <View style={styles.rediscoverCard}>
+      <TouchableOpacity style={styles.rediscoverHeader} onPress={onToggle}>
+        <View>
+          <Text style={styles.rediscoverTitle}>😴 Forgotten Pieces</Text>
+          <Text style={styles.rediscoverSub}>
+            {items.length} item{items.length !== 1 ? "s" : ""} not worn in 30+ days
+          </Text>
+        </View>
+        <Text style={styles.rediscoverChevron}>{expanded ? "▲" : "▼"}</Text>
+      </TouchableOpacity>
+      {expanded && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rediscoverScroll}>
+          {items.map(item => {
+            const Wrapper = onItemPress ? TouchableOpacity : View;
+            return (
+              <Wrapper
+                key={item.id}
+                style={styles.rediscoverItem}
+                {...(onItemPress ? { onPress: () => onItemPress(item) } : {})}
+              >
+                <View style={styles.rediscoverIconWrapper}>
+                  {item.image_url ? (
+                    <Image source={{ uri: item.image_url }} style={styles.rediscoverPhoto} contentFit="contain" />
+                  ) : (
+                    <ClothingIcon category={item.category} subcategory={item.subcategory} colour={item.colour} size={48} />
+                  )}
+                </View>
+                <Text style={styles.rediscoverItemName} numberOfLines={1}>{item.name}</Text>
+                <Text style={styles.rediscoverItemSub} numberOfLines={1}>
+                  {lastWornMap[item.id]
+                    ? `Last: ${new Date(lastWornMap[item.id] + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                    : "Never worn"}
+                </Text>
+              </Wrapper>
+            );
+          })}
+        </ScrollView>
+      )}
+    </View>
+  );
+}
+
 export default function Wardrobe() {
   const [items, setItems] = useState<ClothingItem[]>([]);
+  const [lastWornMap, setLastWornMap] = useState<Record<string, string>>({});
+  const [rediscoverExpanded, setRediscoverExpanded] = useState(true);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -69,12 +130,33 @@ export default function Wardrobe() {
       });
     });
     if (!user) return;
-    const { data, error } = await supabase
-      .from("clothing_items")
-      .select("*")
-      .eq("user_id", user.uid)
-      .order("created_at", { ascending: false });
+
+    const [{ data, error }, { data: logsData }] = await Promise.all([
+      supabase
+        .from("clothing_items")
+        .select("*")
+        .eq("user_id", user.uid)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("outfit_logs")
+        .select("date, outfit_log_items(clothing_item_id)")
+        .eq("user_id", user.uid)
+        .order("date", { ascending: false }),
+    ]);
+
     if (error) { console.log("Fetch error:", error.message); return; }
+
+    // Build last-worn map: item id → most recent wear date string
+    const wornMap: Record<string, string> = {};
+    (logsData || []).forEach((log: any) => {
+      (log.outfit_log_items || []).forEach((oli: any) => {
+        if (!wornMap[oli.clothing_item_id]) {
+          wornMap[oli.clothing_item_id] = log.date;
+        }
+      });
+    });
+
+    setLastWornMap(wornMap);
     setItems(data || []);
     setLoading(false);
   };
@@ -241,6 +323,16 @@ export default function Wardrobe() {
     ? items
     : items.filter(item => item.category === selectedCategory);
 
+  // 30-day rediscovery: items not worn (or never worn) in the last 30 days
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const forgottenItems = items.filter(item => {
+    const lastWorn = lastWornMap[item.id];
+    if (lastWorn) return new Date(lastWorn + "T00:00:00") < thirtyDaysAgo;
+    // Never worn — flag only if the item itself is older than 30 days
+    return new Date(item.created_at) < thirtyDaysAgo;
+  });
+
   const getCPWColour = (cpw: number) => {
     if (cpw < 1) return { color: "#00cc44", background: "#0a2a0a", border: "#00ff0033" };
     if (cpw < 5) return { color: "#ffaa00", background: "#2a1a00", border: "#ffaa0033" };
@@ -350,6 +442,16 @@ export default function Wardrobe() {
       </ScrollView>
 
       <ScrollView style={styles.grid}>
+        {/* ── 30-day rediscovery nudge ── */}
+        <ForgottenPiecesSection
+          items={forgottenItems}
+          lastWornMap={lastWornMap}
+          expanded={rediscoverExpanded}
+          onToggle={() => setRediscoverExpanded(e => !e)}
+          // Future: pass onItemPress to connect forgotten pieces to the outfit builder.
+          // e.g. onItemPress={(item) => router.push({ pathname: "/(tabs)/builder", params: { prefillItemId: item.id } })}
+        />
+
         {loading ? (
           <Text style={styles.emptyText}>Loading...</Text>
         ) : filteredItems.length === 0 ? (
@@ -540,4 +642,16 @@ const styles = StyleSheet.create({
   removeImageBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: "#1a0000", borderWidth: 1, borderColor: "#ff000033" },
   removeImageText: { color: "#ff4444", fontSize: 12 },
   imageHint: { color: "#555", fontSize: 11, marginTop: 6, textAlign: "center" },
+  // Rediscovery nudge
+  rediscoverCard: { backgroundColor: "#1a1200", borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: "#ffaa0044" },
+  rediscoverHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
+  rediscoverTitle: { fontSize: 14, fontWeight: "bold", color: "#ffaa00" },
+  rediscoverSub: { fontSize: 12, color: "#888", marginTop: 2 },
+  rediscoverChevron: { color: "#ffaa00", fontSize: 14 },
+  rediscoverScroll: { marginTop: 14 },
+  rediscoverItem: { alignItems: "center", marginRight: 16, width: 72 },
+  rediscoverIconWrapper: { backgroundColor: "#2a1f00", borderRadius: 12, width: 68, height: 68, alignItems: "center", justifyContent: "center", marginBottom: 6, borderWidth: 1, borderColor: "#ffaa0033" },
+  rediscoverPhoto: { width: 64, height: 64, borderRadius: 10 },
+  rediscoverItemName: { fontSize: 11, color: "#fff", textAlign: "center", fontWeight: "600" },
+  rediscoverItemSub: { fontSize: 10, color: "#888", textAlign: "center", marginTop: 2 },
 });
