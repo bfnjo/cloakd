@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/images/logo.png" alt="CLOAKD Logo" width="300" />
+  <img src="./assets/images/cloakd_images/logo.png" alt="CLOAKD Logo" width="300" />
 </p>
 <h1 align="center">CLOAKD</h1>
 <p align="center"><em>Dress your best.</em></p>
@@ -13,7 +13,22 @@
 ---
 
 ## Proof of Concept
- 
+<p align="center">
+  <img src="./assets/images/cloakd_images/login_page.jpg" alt="Login Page" width="100" />
+
+  <img src="./assets/images/cloakd_images/signup_page.jpg" alt="Signup Page" width="100" />
+
+  <img src="./assets/images/cloakd_images/home_page.jpg" alt="Home Page" width="100" />
+
+  <img src="./assets/images/cloakd_images/wardrobe_page.jpg" alt="Virtual Wardrobe Page" width="100" />
+
+  <img src="./assets/images/cloakd_images/add_clothing.jpg" alt="Add Clothing Item Pop-Up" width="100" />
+
+  <img src="./assets/images/cloakd_images/calendar_page.jpg" alt="Calendar Page" width="100" />
+
+  <img src="./assets/images/cloakd_images/stats_page.jpg" alt="Stats page with Cost-Per-Wear" width="100" />
+</p>
+
 ---
  
 ## Motivation
@@ -46,6 +61,7 @@ Ultimately, we envision Cloakd as the app people reach for every morning, the on
 4. I want to be able to take inspiration from others' outfits and share my own.
 5. As a frugal person, I want to be able to track how much value and how many wears I am getting out of my clothes.
 6. I want to keep track of the outfits I have worn each day so that I do not repeat outfits too frequently. 
+
 ---
  
 ## Scope of Project
@@ -56,12 +72,35 @@ Cloakd's features are outlined in the following sections, organised by the follo
  
 - **[Proposed]** — features targeted for completion
 - **[Current Progress]** — what has been built so far
+
 ---
  
 ## Features
+
+### User Account Authentication
+<p align="center">
+  <img src="./assets/images/cloakd_images/login_page.jpg" alt="Virtual Wardrobe Page" width="200" />
+
+  <img src="./assets/images/cloakd_images/signup_page.jpg" alt="Add Clothing Item Pop-Up" width="200" />
+</p>
+
+**[Proposed]**
+
+Each user will be authenticated with their own unique account. Utilising the Firebase SDK Authentication, users can log in via Email and Password. They will be able to create an account if the user does not already have an existing account. Based on the user’s action, the relevant call to the Firebase authentication instance is made. The FirebaseAuthExceptions are handled within a try-catch block and an alert bar is displayed when the user keys in an invalid input. Only upon successful login or account registration will the user be routed to the next page and the account reflected in the Firebase authentication. 
+
+**[Current Progress]**
+
+Users are able to either log in with their existing account if they have already made one or sign up for a new account with their name, email and password. Upon inputting their log in information, if their account exists and their information is correct, they will be redirected to the home page of their account.
+
+---
  
 ### Virtual Wardrobe
- 
+<p align="center">
+  <img src="./assets/images/cloakd_images/wardrobe_page.jpg" alt="Virtual Wardrobe Page" width="200" />
+
+  <img src="./assets/images/cloakd_images/add_clothing.jpg" alt="Add Clothing Item Pop-Up" width="200" />
+</p>
+
 **[Proposed]**
  
 Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. The wardrobe screen displays all items at a glance, filterable by category, colour or occasion in one tap. Items that have not been worn for 30 or more days are surfaced automatically to encourage rediscovery.
@@ -97,7 +136,10 @@ Open-Meteo API integration is complete and returning live weather data for the u
 ---
  
 ### Outfit Calendar
- 
+<p align="center">
+  <img src="./assets/images/cloakd_images/calendar_page.jpg" alt="Calendar Page" width="200" />
+</p>
+
 **[Proposed]**
  
 The outfit calendar acts as a personal style diary. Every time a user logs an outfit, it is recorded against the specified date. Users can look back to see exactly what they wore and when. Logging an outfit automatically updates the wear count and cost-per-wear for every item in the outfit. The calendar also surfaces pieces that have not been worn in a while to encourage rediscovery. Users can also edit and delete outfits that have been logged previously.
@@ -121,7 +163,10 @@ The community feed has not been built yet.
 ---
  
 ### Cost-Per-Wear Tracker
- 
+<p align="center">
+  <img src="./assets/images/cloakd_images/stats_page.jpg" alt="Stats page with Cost-Per-Wear" width="200" />
+</p>
+
 **[Proposed]**
  
 When adding clothing items, users input the purchase price. Cost-per-wear is calculated as price divided by the number of wears and updated automatically each time the item is logged as part of an outfit. The wardrobe view surfaces this figure alongside wear count for each item, giving users a clear picture of the value they are getting out of their clothes.
@@ -158,23 +203,97 @@ The trending outfits algorithm has not been built yet.
  
 ## Timeline and Development Plan
  
+| Milestone | Date | Task & Description |
+| --- | --- | --- |
+| Liftoff | 10 - 18 May 2026 | Create project poster. |
+| Liftoff | 10 - 18 May 2026 | Film, edit and craft liftoff project poster. |
+| Liftoff | 10 - 18 May 2026 | Finalise project features and review proposal. |
+
+> **Evaluation Liftoff: 18 May 2026**
+> - Create project poster and video.
+> - Solidify plans for CLOAKD app.
+> - Self-learn all the tools in our tech stack to build our CLOAKD app.
+
+| Milestone | Date | Task & Description |
+| --- | --- | --- |
+| 1 | 19 - 24 May 2026 | Set up Expo project, Firebase backend and Supabase backend. Integrate Expo with Firebase for user authentication and Supabase for clothing item information. |
+| 1 | 19 - 24 May 2026 | Create log-in and sign-up pages with user email and password for authentication and verification. |
+| 1 | 19 - 24 May 2026 | Create home page as a dashboard that is connected to all other pages and features. |
+| 1 | 24 - 31 May 2026 | Create virtual wardrobe feature with image capture and input of clothing item details such as colour, material, subcategory and purchanse price. Link to Supabase for storage of details. |
+| 1 | 24 - 31 May 2026 | Create outfit calendar feature with ability to log outfits and highlight dates where outfits have been logged. |
+| 1 | 24 - 31 May 2026 | Create Cost-Per-Wear extension to update wear count every time the clothing item is logged in an outfit. Use purchase price / number of wears to calculate. |
+
+> **Evaluation Milestone 1: 1 June 2026**
+> - Able to add clothes to the virtual wardrobe + store and access data.
+> - Outfit Calendar to be functional.
+> - Calculation feature of Cost-per-wear Tracker to be functional. Integration with Virtual Wardrobe to be completed at a later date.
+> - Account sign-up and log-in with authentication to be completed.
+> - Basic UI complete.
+
+| Milestone | Date | Task & Description |
+| --- | --- | --- |
+| 2 | 2 - 15 June 2026 | Create outfit builder feature and link it to the virtual wardrobe to directly access all clothing items. |
+| 2 | 2 - 15 June 2026 | Add function that pushes clothes that have not been worn in a while for outfit builder feature. |
+| 2 | 2 - 15 June 2026 | Include occasion and weather filter to suggest outfit recommendations for outfit builder feature. |
+| 2 | 16 - 28 June 2026 | Create settings page. | 
+| 2 | 16 - 28 June 2026 | Start creating community feed and outfit sharing feature. |
+
+> **Evaluation Milestone 2: 29 June 2026** 
+> - Occasion and Weather Filter to be functional.
+> - Outfit builder to be functional.
+> - Backend of Virtual Wardrobe completed. Integration with Cost-per-wear Tracker.
+> - Frontend of Share Outfits done.
+
+
+| Milestone | Date | Task & Description |
+| --- | --- | --- |
+| 3 | 1 - 26 July 2026 | Complete building streak system. |
+| 3 | 1 - 26 July 2026 | Create and add achievement badges for hitting certain levels of streaks, outfits logged, achieving certain levels of value for Cost-Per-Wear and number of clothing pieces added. |
+| 3 | 1 - 26 July 2026 | Ensure that community feed feature is fully functional. |
+| 3 | 1 - 26 July 2026 | Implement trending outfit feature in feed and include trending outfit calculator algorithm based on views, likes, saves and shares. | 
+| 3 | 1 - 26 July 2026 | Create outfit sharing feature and ensure it is fully functional. |
+
+> **Evaluation Milestone 3: 27 July 2026** 
+> - Streak System to be functional + badges/achievement tokens to be designed.
+> - Share Outfits feature to be functional.
+> - Trending Outfits feature to be functional.
+> - Community feed feature to be fully functional.
+
+
+| Milestone | Date | Task & Description |
+| --- | --- | --- |
+| Splashdown | 1 - 25 August 2026 | Fix all bugs and improve UI. |
+| Splashdown | 1 - 25 August 2026 | Make quality of life updates and improvements. |
+
+> **Evaluation Splashdown: 26 August 2026** 
+> - Fix all bugs and improve UI.
+> - Quality of life updates and improvements.
+
 ---
  
 ## Database Schema
  
----
- 
-## System Architecture
+
 
 ---
  
 ## Tech Stack
  
+| Layer | Technology used |
+| --- | --- |
+| Frontend Design & App Framework | React Native, Expo |
+| Backend Design | Node.js, Express.js |
+| PostgreSQL Database | Supabase |
+| Auth & Push | Firebase |
+| Caching | Upstash Redis |
+| Weather API | Open-Meteo |
+| Version Control | Git, Github |
+
 ---
  
-## Work Log
+## Project Log
  
-Refer to project log: *(link to be added)*
+Link: https://docs.google.com/spreadsheets/d/1fuehwJMzX3WnRN_kk11JHXUMRSaRDCETw6iLsPMIkKk/edit?gid=0#gid=0
  
 ---
  
