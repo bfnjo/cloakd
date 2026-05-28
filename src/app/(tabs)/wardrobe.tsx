@@ -34,7 +34,7 @@ type ClothingItem = {
 };
 
 const subcategories: Record<string, string[]> = {
-  Tops: ["Round Neck", "Polo", "Henley", "Button Up", "Hoodie", "Tank Top", "Crewneck"],
+  Tops: ["Round Neck", "Polo", "Henley", "Button Up", "Hoodie", "Tank Top", "Crewneck", "Jersey"],
   Bottoms: ["Skinny Jeans", "Straight Cut", "Baggy Jeans", "Carpenter", "Shorts", "Chinos", "Sweatpants", "Cargo"],
   Outerwear: ["Jacket", "Coat", "Blazer", "Windbreaker", "Puffer"],
   Footwear: ["Sneakers", "Boots", "Loafers", "Sandals", "Dress Shoes"],
