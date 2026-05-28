@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
@@ -40,6 +41,14 @@ const subcategories: Record<string, string[]> = {
   Footwear: ["Sneakers", "Boots", "Loafers", "Sandals", "Dress Shoes"],
   Accessories: ["Hat", "Belt", "Bag", "Watch", "Sunglasses", "Scarf"],
 };
+
+function FunnelIcon({ color = "#888", size = 16 }: { color?: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 20 20">
+      <Path d="M2 3 L18 3 L12 11 L12 17 L8 17 L8 11 Z" fill={color} />
+    </Svg>
+  );
+}
 
 // ─── Forgotten Pieces Section ────────────────────────────────────────────────
 // Displays clothing items not worn in 30+ days.
@@ -106,7 +115,10 @@ export default function Wardrobe() {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedColour, setSelectedColour] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"newest" | "most_worn" | "least_worn" | "cpw_low" | "cpw_high">("newest");
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [pendingImageUri, setPendingImageUri] = useState<string | null>(null);
@@ -319,9 +331,28 @@ export default function Wardrobe() {
     setEditModalVisible(true);
   };
 
-  const filteredItems = selectedCategory === "All"
-    ? items
-    : items.filter(item => item.category === selectedCategory);
+  const availableColours = Array.from(new Set(items.map(i => i.colour).filter(Boolean))).sort();
+  const hasActiveFilters = selectedColour !== null || sortBy !== "newest";
+
+  const filteredItems = items
+    .filter(item => selectedCategory === "All" || item.category === selectedCategory)
+    .filter(item => selectedColour === null || item.colour.toLowerCase() === selectedColour.toLowerCase())
+    .sort((a, b) => {
+      if (sortBy === "most_worn") return b.wear_count - a.wear_count;
+      if (sortBy === "least_worn") return a.wear_count - b.wear_count;
+      if (sortBy === "cpw_low") {
+        const cpwA = a.wear_count > 0 ? a.price / a.wear_count : a.price;
+        const cpwB = b.wear_count > 0 ? b.price / b.wear_count : b.price;
+        return cpwA - cpwB;
+      }
+      if (sortBy === "cpw_high") {
+        const cpwA = a.wear_count > 0 ? a.price / a.wear_count : a.price;
+        const cpwB = b.wear_count > 0 ? b.price / b.wear_count : b.price;
+        return cpwB - cpwA;
+      }
+      // newest (default): already ordered by created_at desc from DB
+      return 0;
+    });
 
   // 30-day rediscovery: items not worn in the last 30 days or never worn
   const thirtyDaysAgo = new Date();
@@ -441,6 +472,23 @@ export default function Wardrobe() {
       </ScrollView>
 
       <ScrollView style={styles.grid}>
+        {/* ── Filter & Sort pill ── */}
+        <TouchableOpacity
+          style={[styles.filterPill, hasActiveFilters && styles.filterPillActive]}
+          onPress={() => setFilterModalVisible(true)}
+        >
+          <FunnelIcon color={hasActiveFilters ? "#7B7FE8" : "#888"} size={15} />
+          <Text style={[styles.filterPillText, hasActiveFilters && styles.filterPillTextActive]}>
+            {(() => {
+              const parts: string[] = [];
+              if (sortBy !== "newest") parts.push({ most_worn: "Most Worn", least_worn: "Least Worn", cpw_low: "CPW ↑ Low", cpw_high: "CPW ↓ High" }[sortBy]);
+              if (selectedColour) parts.push(selectedColour);
+              return parts.length > 0 ? parts.join(" · ") : "Filter & Sort";
+            })()}
+          </Text>
+          {hasActiveFilters && <View style={styles.filterDot} />}
+        </TouchableOpacity>
+
         {/* ── 30-day rediscovery nudge ── */}
         <ForgottenPiecesSection
           items={forgottenItems}
@@ -533,6 +581,67 @@ export default function Wardrobe() {
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={() => { setModalVisible(false); setPendingImageUri(null); }}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Filter & Sort Modal */}
+      <Modal visible={filterModalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.modalTitle}>Filter & Sort</Text>
+              {hasActiveFilters && (
+                <TouchableOpacity onPress={() => { setSelectedColour(null); setSortBy("newest"); }}>
+                  <Text style={styles.clearFiltersText}>Clear all</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <Text style={styles.label}>Sort by</Text>
+            <View style={styles.sortGrid}>
+              {([
+                { key: "newest",    label: "Newest" },
+                { key: "most_worn", label: "Most Worn" },
+                { key: "least_worn",label: "Least Worn" },
+                { key: "cpw_low",   label: "CPW ↑ Low" },
+                { key: "cpw_high",  label: "CPW ↓ High" },
+              ] as const).map(opt => (
+                <TouchableOpacity
+                  key={opt.key}
+                  style={[styles.filterChip, sortBy === opt.key && styles.filterChipActive]}
+                  onPress={() => setSortBy(opt.key)}
+                >
+                  <Text style={[styles.filterChipText, sortBy === opt.key && styles.filterChipTextActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {availableColours.length > 0 && (
+              <>
+                <Text style={styles.label}>Colour</Text>
+                <View style={styles.sortGrid}>
+                  {availableColours.map(colour => (
+                    <TouchableOpacity
+                      key={colour}
+                      style={[styles.filterChip, selectedColour === colour && styles.filterChipActive]}
+                      onPress={() => setSelectedColour(selectedColour === colour ? null : colour)}
+                    >
+                      <Text style={[styles.filterChipText, selectedColour === colour && styles.filterChipTextActive]}>{colour}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
+            <TouchableOpacity style={styles.submitButton} onPress={() => setFilterModalVisible(false)}>
+              <Text style={styles.submitButtonText}>
+                Apply · {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setFilterModalVisible(false)}>
+              <Text style={styles.cancelButtonText}>Close</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -641,6 +750,15 @@ const styles = StyleSheet.create({
   removeImageBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: "#1a0000", borderWidth: 1, borderColor: "#ff000033" },
   removeImageText: { color: "#ff4444", fontSize: 12 },
   imageHint: { color: "#555", fontSize: 11, marginTop: 6, textAlign: "center" },
+  filterPill: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", backgroundColor: "#111", borderRadius: 24, paddingHorizontal: 18, paddingVertical: 10, marginBottom: 16, borderWidth: 1, borderColor: "#333", gap: 8 },
+  filterPillActive: { borderColor: "#7B7FE8", backgroundColor: "#1a1a2e" },
+  filterPillText: { fontSize: 14, color: "#888", fontWeight: "600" },
+  filterPillTextActive: { color: "#7B7FE8" },
+  filterDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#7B7FE8" },
+  // Filter modal
+  filterModalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  clearFiltersText: { color: "#7B7FE8", fontSize: 14 },
+  sortGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 },
   // Rediscovery nudge
   rediscoverCard: { backgroundColor: "#1a1200", borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: "#ffaa0044" },
   rediscoverHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },

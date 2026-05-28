@@ -144,7 +144,7 @@ export default function Stats() {
       <Text style={styles.sectionTitle}>Best Value Item</Text>
       {bestValueItem ? (
         <View style={styles.itemCard}>
-          <ItemThumb item={bestValueItem} />
+          <View style={styles.itemIconWrapper}><ItemThumb item={bestValueItem} /></View>
           <View style={styles.itemInfo}>
             <Text style={styles.itemName}>{bestValueItem.name}</Text>
             <Text style={styles.itemDetail}>{bestValueItem.colour} · {bestValueItem.wear_count}× worn</Text>
@@ -163,7 +163,7 @@ export default function Stats() {
       <Text style={styles.sectionTitle}>Most Worn Item</Text>
       {mostWornItem && mostWornItem.wear_count > 0 ? (
         <View style={styles.itemCard}>
-          <ItemThumb item={mostWornItem} />
+          <View style={styles.itemIconWrapper}><ItemThumb item={mostWornItem} /></View>
           <View style={styles.itemInfo}>
             <Text style={styles.itemName}>{mostWornItem.name}</Text>
             <Text style={styles.itemDetail}>{mostWornItem.colour} · {mostWornItem.category}</Text>
@@ -197,7 +197,8 @@ const styles = StyleSheet.create({
   highlightLabel: { fontSize: 12, color: "#888", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 },
   highlightValue: { fontSize: 28, fontWeight: "bold", color: "#7B7FE8" },
   itemCard: { backgroundColor: "#111", borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: "#222", flexDirection: "row", alignItems: "center" },
-  itemPhoto: { width: 44, height: 44, borderRadius: 8, marginRight: 16 },
+  itemIconWrapper: { backgroundColor: "#2e2e3a", borderRadius: 10, width: 56, height: 56, alignItems: "center", justifyContent: "center", marginRight: 16 },
+  itemPhoto: { width: 48, height: 48, borderRadius: 8 },
   itemInfo: { flex: 1 },
   itemName: { fontSize: 15, fontWeight: "bold", color: "#fff", marginBottom: 4 },
   itemDetail: { fontSize: 13, color: "#888" },

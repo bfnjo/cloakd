@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   outfitItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#2e2e3a",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
