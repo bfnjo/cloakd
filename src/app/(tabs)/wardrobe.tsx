@@ -1,6 +1,6 @@
-import * as ImagePicker from "expo-image-picker";
 import { FileSystemUploadType, uploadAsync } from "expo-file-system/legacy";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -323,14 +323,13 @@ export default function Wardrobe() {
     ? items
     : items.filter(item => item.category === selectedCategory);
 
-  // 30-day rediscovery: items not worn (or never worn) in the last 30 days
+  // 30-day rediscovery: items not worn in the last 30 days or never worn
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const forgottenItems = items.filter(item => {
     const lastWorn = lastWornMap[item.id];
-    if (lastWorn) return new Date(lastWorn + "T00:00:00") < thirtyDaysAgo;
-    // Never worn — flag only if the item itself is older than 30 days
-    return new Date(item.created_at) < thirtyDaysAgo;
+    if (!lastWorn) return true;
+    return new Date(lastWorn + "T00:00:00") < thirtyDaysAgo;
   });
 
   const getCPWColour = (cpw: number) => {
