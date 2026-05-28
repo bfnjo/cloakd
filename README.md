@@ -103,11 +103,11 @@ Users are able to either log in with their existing account if they have already
 
 **[Proposed]**
  
-Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. The wardrobe screen displays all items at a glance, filterable by category, colour or occasion in one tap. Items that have not been worn for 30 or more days are surfaced automatically to encourage rediscovery.
+Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. The wardrobe screen displays all items at a glance, filterable by category, colour or occasion in one tap. Items that have not been worn for 30 or more days and new items that have been added but are yet to be worn are surfaced automatically to encourage rediscovery.
  
 **[Current Progress]**
  
-Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. The wardrobe grid view is functional and displays all saved items. Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery nudge have not yet been implemented. 
+Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. The wardrobe grid view is functional and displays all saved items. Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery and new item nudge have not yet been implemented. 
  
 ---
  
@@ -273,7 +273,7 @@ The trending outfits algorithm has not been built yet.
  
 ## Database Schema
  
-
+<img src="./assets/images/cloakd_images/supabase-schema.png" alt="Database Schema" width="500" />
 
 ---
  
