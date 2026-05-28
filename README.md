@@ -107,7 +107,7 @@ Users add their clothes by uploading a photo of each item and tagging it with ba
  
 **[Current Progress]**
  
-Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. The wardrobe grid view is functional and displays all saved items. Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery and new item nudge have not yet been implemented. 
+Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. The wardrobe grid view is functional and displays all saved items. Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery have been implemented as well.
  
 ---
  

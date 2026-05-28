@@ -1,5 +1,4 @@
 import { Image } from "expo-image";
-import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ClothingIcon from "../../components/ClothingIcon";
@@ -26,7 +25,6 @@ type ClothingItem = {
 
 export default function Calendar() {
   const [logs, setLogs] = useState<OutfitLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
@@ -47,7 +45,7 @@ export default function Calendar() {
       );
     }
     return (
-      <View style={{ width: size, height: size, marginRight: 12, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: size, height: size, marginRight: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#2e2e3a", borderRadius: 6 }}>
         <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={size} />
       </View>
     );
@@ -73,7 +71,6 @@ export default function Calendar() {
       }));
       setLogs(formatted);
     }
-    setLoading(false);
   };
 
   const fetchWardrobe = async () => {
@@ -250,9 +247,6 @@ export default function Calendar() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace("/home")}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
         <Text style={styles.title}>Calendar</Text>
         <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.addButtonText}>+ Log</Text>

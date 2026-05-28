@@ -34,10 +34,6 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.replace("/home")}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
-
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
@@ -76,13 +72,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     padding: 24,
     paddingTop: 60,
-  },
-  backButton: {
-    marginBottom: 32,
-  },
-  backText: {
-    color: "#7B7FE8",
-    fontSize: 16,
   },
   avatarContainer: {
     alignItems: "center",

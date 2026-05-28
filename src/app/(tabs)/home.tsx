@@ -116,9 +116,6 @@ export default function Home() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/(tabs)/profile")}>
-          <Text style={styles.profileText}>👤</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Greeting */}

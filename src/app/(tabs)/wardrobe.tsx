@@ -1,7 +1,7 @@
 import { FileSystemUploadType, uploadAsync } from "expo-file-system/legacy";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,11 +35,12 @@ type ClothingItem = {
 };
 
 const subcategories: Record<string, string[]> = {
-  Tops: ["Round Neck", "Polo", "Henley", "Button Up", "Hoodie", "Tank Top", "Crewneck", "Jersey"],
-  Bottoms: ["Skinny Jeans", "Straight Cut", "Baggy Jeans", "Carpenter", "Shorts", "Chinos", "Sweatpants", "Cargo"],
-  Outerwear: ["Jacket", "Coat", "Blazer", "Windbreaker", "Puffer"],
+  Tops: ["Round Neck", "Polo", "Henley", "Button Up", "Hoodie", "Tank Top", "Crewneck", "Jersey", "Tube Top", "Halter Top", "Blouse", "Crop Top", "Off-Shoulder", "Bustier", "Corset"],
+  Bottoms: ["Skinny Jeans", "Straight Cut", "Baggy Jeans", "Carpenter", "Shorts", "Chinos", "Sweatpants", "Cargo", "Trackpants", "Mini Skirt", "Midi Skirt", "Maxi Skirt", "A-Line Skirt", "Pleated Skirt", "Wrap Skirt"],
+  Outerwear: ["Jacket", "Coat", "Blazer", "Windbreaker", "Puffer", "Hoodie", "Quarterzip", "Bomber", "Cardigan", "Overshirt"],
+  Dress: ["Mini Dress", "Midi Dress", "Maxi Dress", "Slip Dress", "Wrap Dress", "Shirt Dress", "Bodycon Dress", "A-Line Dress", "Sundress", "Cocktail Dress"],
   Footwear: ["Sneakers", "Boots", "Loafers", "Sandals", "Dress Shoes"],
-  Accessories: ["Hat", "Belt", "Bag", "Watch", "Sunglasses", "Scarf"],
+  Accessories: ["Hat", "Belt", "Bag", "Watch", "Sunglasses", "Scarf", "Ring", "Necklace", "Bracelet", "Earrings"],
 };
 
 function FunnelIcon({ color = "#888", size = 16 }: { color?: string; size?: number }) {
@@ -132,7 +133,7 @@ export default function Wardrobe() {
     price: "",
   });
 
-  const categories = ["All", "Tops", "Bottoms", "Outerwear", "Footwear", "Accessories"];
+  const categories = ["All", "Tops", "Bottoms", "Outerwear", "Dress", "Footwear", "Accessories"];
 
   const fetchItems = async () => {
     const user = await new Promise<any>((resolve) => {
@@ -402,11 +403,6 @@ export default function Wardrobe() {
             </TouchableOpacity>
           </View>
         )}
-        {!preview && (
-          <Text style={styles.imageHint}>
-            Background is automatically removed. Requires EXPO_PUBLIC_REMOVEBG_API_KEY.
-          </Text>
-        )}
       </View>
     );
   };
@@ -438,25 +434,17 @@ export default function Wardrobe() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace("/(tabs)/home")}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
         <Text style={styles.title}>My Wardrobe</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => {
-              setForm({ name: "", category: "Tops", subcategory: "", colour: "", material: "", brand: "", price: "" });
-              setPendingImageUri(null);
-              setModalVisible(true);
-            }}
-          >
-            <Text style={styles.addButtonText}>+ Add</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/(tabs)/profile")}>
-            <Text style={styles.profileText}>👤</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            setForm({ name: "", category: "Tops", subcategory: "", colour: "", material: "", brand: "", price: "" });
+            setPendingImageUri(null);
+            setModalVisible(true);
+          }}
+        >
+          <Text style={styles.addButtonText}>+ Add</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
@@ -555,7 +543,7 @@ export default function Wardrobe() {
             <TextInput style={styles.input} placeholder="Price (e.g. 29.90)" placeholderTextColor="#888" value={form.price} onChangeText={t => setForm({ ...form, price: t })} keyboardType="numeric" />
             <Text style={styles.label}>Category</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-              {["Tops", "Bottoms", "Outerwear", "Footwear", "Accessories"].map(cat => (
+              {["Tops", "Bottoms", "Outerwear", "Dress", "Footwear", "Accessories"].map(cat => (
                 <TouchableOpacity key={cat} style={[styles.filterChip, form.category === cat && styles.filterChipActive]} onPress={() => setForm(f => ({ ...f, category: cat, subcategory: "" }))}>
                   <Text style={[styles.filterChipText, form.category === cat && styles.filterChipTextActive]}>{cat}</Text>
                 </TouchableOpacity>
@@ -660,7 +648,7 @@ export default function Wardrobe() {
             <TextInput style={styles.input} placeholder="Price (e.g. 29.90)" placeholderTextColor="#888" value={form.price} onChangeText={t => setForm(f => ({ ...f, price: t }))} keyboardType="numeric" />
             <Text style={styles.label}>Category</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-              {["Tops", "Bottoms", "Outerwear", "Footwear", "Accessories"].map(cat => (
+              {["Tops", "Bottoms", "Outerwear", "Dress", "Footwear", "Accessories"].map(cat => (
                 <TouchableOpacity key={cat} style={[styles.filterChip, form.category === cat && styles.filterChipActive]} onPress={() => setForm(f => ({ ...f, category: cat, subcategory: "" }))}>
                   <Text style={[styles.filterChipText, form.category === cat && styles.filterChipTextActive]}>{cat}</Text>
                 </TouchableOpacity>

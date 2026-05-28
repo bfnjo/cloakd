@@ -1,4 +1,3 @@
-import React from "react";
 import Svg, {
   Circle,
   Defs,
@@ -235,7 +234,7 @@ function ShortsIcon({ fill, dark }: { fill: string; dark: string }) {
   );
 }
 
-function JacketIcon({ fill, dark, light }: { fill: string; dark: string; light: string }) {
+function JacketIcon({ fill, dark }: { fill: string; dark: string }) {
   return (
     <>
       {/* Body + sleeves */}
@@ -275,16 +274,21 @@ function SneakerIcon({ fill, dark, light }: { fill: string; dark: string; light:
   );
 }
 
+
 function SandalIcon({ fill }: { fill: string }) {
-  const strap    = darken(fill, 0.45);
-  const soleEdge = darken(fill, 0.28);
+  const midsole = darken(fill, 0.28);
+  const footbed = lighten(fill, 0.14);
+  const strap   = darken(fill, 0.45);
   return (
     <>
-      <Ellipse cx="50" cy="51" rx="44" ry="12" fill={soleEdge} />
-      <Ellipse cx="50" cy="45" rx="44" ry="12" fill={fill} />
-      <Path d="M 62,42 Q 78,34 90,26" stroke={strap} strokeWidth="10" fill="none" strokeLinecap="round" />
-      <Path d="M 62,42 Q 38,36 16,36" stroke={strap} strokeWidth="10" fill="none" strokeLinecap="round" />
-      <Path d="M 62,42 Q 38,52 16,54" stroke={strap} strokeWidth="10" fill="none" strokeLinecap="round" />
+      {/* Midsole — flat elongated side view */}
+      <Rect x="4" y="43" width="92" height="13" rx="6" fill={midsole} />
+      {/* Footbed top surface strip */}
+      <Rect x="4" y="41" width="92" height="5" rx="3" fill={footbed} />
+      {/* Strap arch over front of shoe */}
+      <Path d="M 86,41 Q 66,8 44,41 L 49,41 Q 66,18 81,41 Z" fill={strap} />
+      {/* Toe post — small upright at the very front */}
+      <Path d="M 89,41 Q 92,33 87,28 Q 82,28 84,35 L 84,41 Z" fill={strap} />
     </>
   );
 }
@@ -357,7 +361,7 @@ function HatIcon({ fill, dark }: { fill: string; dark: string }) {
   );
 }
 
-function BeltIcon({ fill, dark }: { fill: string; dark: string }) {
+function BeltIcon({ fill }: { fill: string }) {
   return (
     <>
       {/* Strap */}
@@ -414,7 +418,7 @@ function WatchIcon({ fill, dark, light }: { fill: string; dark: string; light: s
   );
 }
 
-function SunglassesIcon({ fill, dark }: { fill: string; dark: string }) {
+function SunglassesIcon({ fill }: { fill: string }) {
   return (
     <>
       {/* Left arm */}
@@ -514,17 +518,17 @@ export default function ClothingIcon({ category, subcategory, colour, size = 80 
       {shape === "tank" && <TankTopIcon fill={fillProp} dark={dark} />}
       {shape === "pants" && <PantsIcon fill={fillProp} dark={dark} />}
       {shape === "shorts" && <ShortsIcon fill={fillProp} dark={dark} />}
-      {shape === "jacket" && <JacketIcon fill={fillProp} dark={dark} light={light} />}
+      {shape === "jacket" && <JacketIcon fill={fillProp} dark={dark} />}
       {shape === "coat" && <CoatIcon fill={fillProp} dark={dark} />}
       {shape === "sneaker" && <SneakerIcon fill={fillProp} dark={dark} light={light} />}
       {shape === "sandal" && <SandalIcon fill={fillProp} />}
       {shape === "loafer" && <LoaferIcon fill={fillProp} dark={dark} light={light} />}
       {shape === "boot" && <BootIcon fill={fillProp} dark={dark} />}
       {shape === "hat" && <HatIcon fill={fillProp} dark={dark} />}
-      {shape === "belt" && <BeltIcon fill={fillProp} dark={dark} />}
+      {shape === "belt" && <BeltIcon fill={fillProp} />}
       {shape === "bag" && <BagIcon fill={fillProp} dark={dark} />}
       {shape === "watch" && <WatchIcon fill={fillProp} dark={dark} light={light} />}
-      {shape === "sunglasses" && <SunglassesIcon fill={fillProp} dark={dark} />}
+      {shape === "sunglasses" && <SunglassesIcon fill={fillProp} />}
       {shape === "scarf" && <ScarfIcon fill={fillProp} dark={dark} />}
     </Svg>
   );
