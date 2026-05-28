@@ -45,7 +45,7 @@ export default function Profile() {
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/(tabs)/badges")}>
           <Text style={styles.menuItemText}>🏅 Badge Wall</Text>
           <Text style={styles.menuItemArrow}>→</Text>
         </TouchableOpacity>
@@ -53,7 +53,7 @@ export default function Profile() {
           <Text style={styles.menuItemText}>📊 My Stats</Text>
           <Text style={styles.menuItemArrow}>→</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/(tabs)/settings")}>
           <Text style={styles.menuItemText}>⚙️ Settings</Text>
           <Text style={styles.menuItemArrow}>→</Text>
         </TouchableOpacity>
