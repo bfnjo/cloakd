@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ClothingIcon from "../../components/ClothingIcon";
@@ -31,8 +32,16 @@ export default function Calendar() {
   const [wardrobe, setWardrobe] = useState<ClothingItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
+  const { date } = useLocalSearchParams<{ date: string }>();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  useEffect(() => {
+    if (date) {
+      setSelectedDate(date);
+      setCurrentMonth(new Date(date + "T00:00:00"));
+    }
+  }, [date]);
 
   const ItemThumb = ({ item, size = 36 }: { item: ClothingItem; size?: number }) => {
     if (item.image_url) {

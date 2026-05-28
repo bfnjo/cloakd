@@ -165,20 +165,25 @@ export default function Home() {
         </View>
       ) : (
         recentOutfits.map(outfit => (
-          <View key={outfit.id} style={styles.outfitCard}>
-            <Text style={styles.outfitDate}>{formatDate(outfit.date)}</Text>
-            <View style={styles.outfitItems}>
-              {outfit.items.map(item => (
-                <View key={item.id} style={styles.outfitItem}>
-                  <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={22} />
-                  <Text style={styles.outfitItemName}>{item.name}</Text>
-                </View>
-              ))}
+          <TouchableOpacity
+            key={outfit.id}
+            onPress={() => router.push(`/(tabs)/calendar?date=${outfit.date}`)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.outfitCard}>
+              <Text style={styles.outfitDate}>{formatDate(outfit.date)}</Text>
+              <View style={styles.outfitItems}>
+                {outfit.items.map(item => (
+                  <View key={item.id} style={styles.outfitItem}>
+                    <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={22} />
+                    <Text style={styles.outfitItemName}>{item.name}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
-        ))
-      )}
-
+          </TouchableOpacity>
+      ))
+    )}
     </ScrollView>
   );
 }
