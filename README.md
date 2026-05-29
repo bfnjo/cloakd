@@ -305,7 +305,7 @@ The trending outfits algorithm has not been built yet.
 
 ## Project Poster
 
-<a href="https://drive.google.com/file/d/1GbGmJKm7VFlWk1eDpbVKRx_2CqAl2cxZ/view?usp=sharing">Project Poster</a>
+<a href="https://drive.google.com/file/d/1DDuToza_e9mqj4owryR6hV0lA5SqY5g6/view?usp=sharing">Project Poster</a>
 
 ---
 
