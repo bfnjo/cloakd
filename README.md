@@ -4,9 +4,9 @@
 <h1 align="center">CLOAKD</h1>
 <p align="center"><em>Dress your best.</em></p>
  
-## Milestone I Submission
+## Milestone 1 Submission
  
-**Team Name:** Cloakd
+**Team Name:** CLOAKD
  
 **Proposed Level of Achievement:** Apollo 11
  
@@ -33,23 +33,23 @@
  
 ## Motivation
  
-For most people, us included, getting dressed is stressful. You stand in front of a full wardrobe and somehow still feel like you have nothing to wear. Cloakd reframes that daily moment as something expressive and enjoyable instead of a chore and removes the anxiety from picking out an outfit.
+For most people, us included, getting dressed is stressful. You stand in front of a full wardrobe and somehow still feel like you have nothing to wear. CLOAKD reframes that daily moment as something expressive and enjoyable instead of a chore and removes the anxiety from picking out an outfit.
  
-Most people wear fewer than a third of the clothes they own. The average clothing item gets worn just 7 times before it's thrown away, and 40% of what we buy never gets worn at all. People keep buying new clothes and feeling like they constantly have nothing to wear not because they lack options, but because they can't see what they already have. Cloakd solves a **visibility problem, not a shopping problem.**
+Most people wear fewer than a third of the clothes they own. The average piece of clothing gets worn just 7 times before it's thrown away and 40% of what we buy never gets worn at all. People keep buying new clothes and feeling like they constantly have nothing to wear not because they lack options, but because they can't see what they already have. CLOAKD solves a **visibility problem, not a shopping problem.**
  
-Fast fashion is one of the most polluting industries in the world, but telling people to "buy less" doesn't work. Cloakd takes a different approach by making it fun, social and rewarding to get more out of the clothes you already own. The cost-per-wear tracker and wardrobe utilisation score turn sustainability into a game rather than a guilt trip.
+Fast fashion is one of the most polluting industries in the world, but telling people to "buy less" doesn't work. CLOAKD takes a different approach by making it fun, social and rewarding to get more out of the clothes you already own. The cost-per-wear tracker and wardrobe utilisation score turn sustainability into a game rather than a guilt trip.
  
-We also wanted to build something that brings people together around style in a way that feels real, and to learn how to take an idea from nothing and turn it into something real while picking up software engineering skills along the way by building something we actually care about.
+We also wanted to build something that brings people together around style in a way that feels real and also to learn how to take an idea from nothing and turn it into something real while picking up software engineering skills along the way by building something we actually care about.
  
 ---
  
 ## Vision
  
-Cloakd will be a mobile app for iOS and Android, built with React Native and Expo. It lets users digitise their entire wardrobe and receive daily outfit suggestions built entirely from clothes they already own, filtered by real-time weather and occasion.
+CLOAKD will be a mobile app for iOS and Android, built with React Native and Expo. It lets users digitise their entire wardrobe and receive daily outfit suggestions built entirely from clothes they already own, filtered by real-time weather and occasion.
  
-The app is designed around a simple daily loop: open the app, get a suggestion tailored to today's weather and occasion, log what you wore, and watch your wardrobe come alive through stats, streaks and community sharing.
+The app is designed around a simple daily loop: open the app, get a suggestion tailored to today's weather and occasion, log what you wore and watch your wardrobe come alive through stats, streaks and community sharing.
  
-Ultimately, we envision Cloakd as the app people reach for every morning, the one that changes how they relate to the clothes they already own, reduces mindless overconsumption and makes getting dressed something enjoyable.
+Ultimately, we envision CLOAKD as the app people reach for every morning, the one that changes how they relate to the clothes they already own, reduces mindless overconsumption and makes getting dressed something enjoyable.
  
 ---
  
@@ -60,15 +60,21 @@ Ultimately, we envision Cloakd as the app people reach for every morning, the on
 3. I want to be able to dress well and look stylish no matter the weather, even if it is a blazing hot day or a rainy day with thunderstorms. I also want to be able to dress appropriately for the occasion, such as date nights, formal occasions or gym days.
 4. I want to be able to take inspiration from others' outfits and share my own.
 5. As a frugal person, I want to be able to track how much value and how many wears I am getting out of my clothes.
-6. I want to keep track of the outfits I have worn each day so that I do not repeat outfits too frequently. 
+6. I want to keep track of the outfits I have worn each day so that I do not repeat outfits too frequently.
+7. As someone with a large wardrobe, I want to be able to search and filter my clothes by colour, category or material so that I can quickly find what I'm looking for without digging through my closet.
+8. As someone who hasn't worn certain pieces in a long time, I want to be reminded of clothes I've forgotten about so that I can rediscover and make better use of them.
+9. As someone who is trying to be more intentional about shopping, I want to see which gaps actually exist in my wardrobe before buying anything new.
+10. As a conscious consumer, I want to understand the true cost of my purchases over time so that I can justify spending more on quality pieces that I'll wear repeatedly.
+11. As someone who enjoys fashion, I want to browse trending outfits in the community and save looks that inspire me so that I have a personalised mood board to reference when planning my own outfits.
+12. As someone who enjoys tracking personal progress, I want to look back at my outfit history over weeks and months so that I can see how my personal style has evolved.
 
 ---
  
 ## Scope of Project
  
-Cloakd is a mobile app that lets users photograph and catalogue every clothing item they own, then suggests daily outfits built entirely from their existing wardrobe — filtered by real-time weather and occasion. Users log outfits to a calendar, track cost-per-wear statistics, build daily streaks, and optionally share looks to a community feed.
+CLOAKD is a mobile app that lets users photograph and catalogue every clothing item they own, then suggests daily outfits built entirely from their existing wardrobe — filtered by real-time weather and occasion. Users log outfits to a calendar, track cost-per-wear statistics, build daily streaks, and optionally share looks to a community feed.
  
-Cloakd's features are outlined in the following sections, organised by the following tags:
+CLOAKD's features are outlined in the following sections, organised by the following tags:
  
 - **[Proposed]** — features targeted for completion
 - **[Current Progress]** — what has been built so far
@@ -154,7 +160,7 @@ The calendar has been created and can be navigated by month. Logging an outfit t
  
 **[Proposed]**
  
-Users can opt in to post outfits to the Cloakd community feed. Privacy is the default, meaining that a user's wardrobe stays invisible unless they choose to share the outfits they build from it. Shared posts display only garment categories and colours, never purchase prices or private tags. Other users can like and save posts to their inspiration board.
+Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default, meaining that a user's wardrobe stays invisible unless they choose to share the outfits they build from it. Shared posts display only garment categories and colours, never purchase prices or private tags. Other users can like and save posts to their inspiration board.
  
 **[Current Progress]**
  
@@ -296,6 +302,18 @@ The trending outfits algorithm has not been built yet.
 <a href="https://docs.google.com/spreadsheets/d/1fuehwJMzX3WnRN_kk11JHXUMRSaRDCETw6iLsPMIkKk/edit?gid=0#gid=0">Project Log</a>
  
 ---
+
+## Project Poster
+
+<a href="https://drive.google.com/file/d/1GbGmJKm7VFlWk1eDpbVKRx_2CqAl2cxZ/view?usp=sharing">Project Poster</a>
+
+---
+
+## Project Video
+
+<a href="https://drive.google.com/file/d/19ZwgU1LJ1aS_Iv6AINE2uhheuhCk-wXR/view?usp=drive_link">Project Video</a>
+
+---
  
-<p align="center"><em>Dress your best. &nbsp;·&nbsp; Team Cloakd</em></p>
+<p align="center"><em>Dress your best. &nbsp;·&nbsp; Team CLOAKD</em></p>
 <p align="center">Benjamin Jieming Phua &nbsp;·&nbsp; Phua Ching Liang, Marcus</p>
