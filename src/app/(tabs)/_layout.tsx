@@ -1,4 +1,5 @@
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
+import { Text } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 function HomeIcon({ color, size }: { color: string; size: number }) {
@@ -66,6 +67,8 @@ function ProfileIcon({ color, size }: { color: string; size: number }) {
 }
 
 export default function TabsLayout() {
+  const pathname = usePathname();
+  const isProfileSection = ["/profile", "/settings", "/stats", "/badges"].includes(pathname);
   return (
     <Tabs
       screenOptions={{
@@ -118,7 +121,14 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => <ProfileIcon color={color as string} size={size} />,
+          tabBarIcon: ({ size }) => (
+            <ProfileIcon color={isProfileSection ? "#7B7FE8" : "#555"} size={size} />
+          ),
+          tabBarLabel: ({color}) => (
+            <Text style={{ fontSize: 11, fontWeight: "600", color: isProfileSection ? "#7B7FE8" : "#555" }}>
+              Profile
+            </Text>
+          ),
         }}
       />
       <Tabs.Screen name="stats" options={{ href: null }} />
