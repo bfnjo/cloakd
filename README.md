@@ -187,7 +187,7 @@ The cost-per-wear tracker has been fully built. Users can easily see the number 
 
 **[Proposed]**
 
-Every day a user logs an outfit, their streak grows. Missing a day resets the counter. Badges unlock at 10-day, 50-day and 100-day milestones to keep users motivated to open the app daily.
+Every day a user logs an outfit, their streak grows. Missing a day resets the counter. Badges unlock at 7-day, 30-day and 100-day milestones to keep users motivated to open the app daily.
 
 **[Current Progress]**
 
