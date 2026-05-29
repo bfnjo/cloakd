@@ -30,6 +30,8 @@
 </p>
 
 ---
+
+<div style="page-break-after: always;"></div>
  
 ## Motivation
  
@@ -50,9 +52,11 @@ CLOAKD will be a mobile app for iOS and Android, built with React Native and Exp
 The app is designed around a simple daily loop: open the app, get a suggestion tailored to today's weather and occasion, log what you wore and watch your wardrobe come alive through stats, streaks and community sharing.
  
 Ultimately, we envision CLOAKD as the app people reach for every morning, the one that changes how they relate to the clothes they already own, reduces mindless overconsumption and makes getting dressed something enjoyable.
- 
+
 ---
- 
+
+<div style="page-break-after: always;"></div>
+
 ## User Stories
  
 1. As a person who wants to dress better and improve my style, I want to be able to visualise and plan my outfits.
@@ -80,6 +84,8 @@ CLOAKD's features are outlined in the following sections, organised by the follo
 - **[Current Progress]** — what has been built so far
 
 ---
+
+<div style="page-break-after: always;"></div>
  
 ## Features
 
@@ -99,6 +105,8 @@ Each user will be authenticated with their own unique account. Utilising the Fir
 Users are able to either log in with their existing account if they have already made one or sign up for a new account with their name, email and password. Upon inputting their log in information, if their account exists and their information is correct, they will be redirected to the home page of their account.
 
 ---
+
+<div style="page-break-after: always;"></div>
  
 ### Virtual Wardrobe
 <p align="center">
@@ -117,6 +125,8 @@ Users can save clothing items with basic tags (category, subcategory, colour, ma
  
 ---
  
+<div style="page-break-after: always;"></div>
+
 ### Outfit Builder
  
 **[Proposed]**
@@ -141,6 +151,8 @@ Open-Meteo API integration is complete and returning live weather data for the u
  
 ---
  
+<div style="page-break-after: always;"></div>
+
 ### Outfit Calendar
 <p align="center">
   <img src="./assets/images/cloakd_images/calendar_page.jpg" alt="Calendar Page" width="200" />
@@ -155,6 +167,8 @@ The outfit calendar acts as a personal style diary. Every time a user logs an ou
 The calendar has been created and can be navigated by month. Logging an outfit to a date is functional and stored in the database. Automatic updating of wear counts on log is complete. Visual indicators for logged days as well as current date are displayed on the calendar grid. Clothing items that have not been worn in a while have not been set to be suggested yet.
  
 ---
+
+<div style="page-break-after: always;"></div>
  
 ### Share Outfits
  
@@ -167,6 +181,8 @@ Users can opt in to post outfits to the CLOAKD community feed. Privacy is the de
 The community feed has not been built yet.
  
 ---
+
+<div style="page-break-after: always;"></div>
  
 ### Cost-Per-Wear Tracker
 <p align="center">
@@ -182,6 +198,8 @@ When adding clothing items, users input the purchase price. Cost-per-wear is cal
 The cost-per-wear tracker has been fully built. Users can easily see the number of times they worn each piece of clothing and the cost-per-wear of it in the wardrobe page. Adding a clothing item to an outfit and logging it in the calendar automatically updated the wear count and cost-per-wear of that specific clothing item. There is also a stats page which shows users their best value clothing item (the one with the lowest cost-per-wear) and other statistics like their average cost-per-wear and most worn item.
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ### Streak System
 
@@ -206,6 +224,8 @@ A weekly feed surfaces the most popular community outfits, ranked by an algorith
 The trending outfits algorithm has not been built yet.
 
 ---
+
+<div style="page-break-after: always;"></div>
  
 ## Timeline and Development Plan
  
@@ -236,6 +256,8 @@ The trending outfits algorithm has not been built yet.
 > - Account sign-up and log-in with authentication to be completed.
 > - Basic UI complete.
 
+<div style="page-break-after: always;"></div>
+
 | Milestone | Date | Task & Description |
 | --- | --- | --- |
 | 2 | 2 - 15 June 2026 | Create outfit builder feature and link it to the virtual wardrobe to directly access all clothing items. |
@@ -265,6 +287,7 @@ The trending outfits algorithm has not been built yet.
 > - Trending Outfits feature to be functional.
 > - Community feed feature to be fully functional.
 
+<div style="page-break-after: always;"></div>
 
 | Milestone | Date | Task & Description |
 | --- | --- | --- |
@@ -276,6 +299,8 @@ The trending outfits algorithm has not been built yet.
 > - Quality of life updates and improvements.
 
 ---
+
+<div style="page-break-after: always;"></div>
  
 ## Database Schema
  
@@ -296,6 +321,8 @@ The trending outfits algorithm has not been built yet.
 | Version Control | Git, Github |
 
 ---
+
+<div style="page-break-after: always;"></div>
  
 ## Project Log
  
