@@ -363,6 +363,8 @@ export default function Builder() {
   const [occasion, setOccasion] = useState<Occasion>("Casual");
   const [generating, setGenerating] = useState(false);
   const [pickerSlot, setPickerSlot] = useState<keyof OutfitSlots | null>(null);
+  const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
+  const [rawTempC, setRawTempC] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -381,7 +383,7 @@ export default function Builder() {
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`
         );
         const data = await response.json();
-        const temp = Math.round(data.current.temperature_2m);
+        const tempC = Math.round(data.current.temperature_2m);
         const code = data.current.weathercode;
         const getWeatherInfo = (code: number) => {
           if (code === 0) return { description: "Clear skies", emoji: "☀️" };
@@ -393,7 +395,9 @@ export default function Builder() {
           return { description: "Stormy", emoji: "⛈️" };
         };
         const { description, emoji } = getWeatherInfo(code);
-        setWeather({ temp: temp.toString(), description, emoji, city });
+        setRawTempC(tempC);
+        const displayTemp = tempUnit === "F" ? Math.round(tempC * 9 / 5 + 32) : tempC;
+        setWeather({ temp: displayTemp.toString(), description, emoji, city });
       } catch {
         setWeather({ temp: "--", description: "Unavailable", emoji: "🌤️", city: "Unknown" });
       } finally {
@@ -402,6 +406,12 @@ export default function Builder() {
     };
     fetchWeather();
   }, []);
+
+  useEffect(() => {
+    if (rawTempC === null) return;
+    const displayTemp = tempUnit === "F" ? Math.round(rawTempC * 9 / 5 + 32) : rawTempC;
+    setWeather(prev => prev ? { ...prev, temp: displayTemp.toString() } : prev);
+  }, [tempUnit, rawTempC]);
 
   const fetchWardrobe = async () => {
     setLoading(true);
@@ -421,6 +431,13 @@ export default function Builder() {
     ]);
     if (error) console.error("Wardrobe fetch error:", error.message);
     else setWardrobe(wardrobeData || []);
+    const { data: settingsData } = await supabase
+      .from("user_settings")
+      .select("temperature_unit")
+      .eq("firebase_uid", user.uid)
+      .single();
+    const unit: "C" | "F" = settingsData?.temperature_unit ?? "C";
+    setTempUnit(unit);
     if (logData) {
       setSavedOutfitId(logData.id);
       const loggedIds = (logData.outfit_log_items || []).map((i: any) => i.clothing_item_id);
@@ -448,7 +465,7 @@ export default function Builder() {
   );
 
   const getFilteredWardrobe = () => {
-    const temp = weather?.temp && weather.temp !== "--" ? parseInt(weather.temp) : 22;
+    const temp = rawTempC !== null ? rawTempC : 22;
     let filtered = applyWeatherFilter(wardrobe, temp);
     filtered = applyOccasionFilter(filtered, occasion);
     const hasTop = filtered.some(i => i.category === "Tops" || i.category === "Dress");
@@ -553,7 +570,7 @@ export default function Builder() {
             <>
               <Text style={styles.weatherEmoji}>{weather?.emoji}</Text>
               <View>
-                <Text style={styles.weatherTemp}>{weather?.temp}°C · {weather?.city}</Text>
+                <Text style={styles.weatherTemp}>{weather?.temp}°{tempUnit} · {weather?.city}</Text>
                 <Text style={styles.weatherDesc}>{weather?.description}</Text>
               </View>
             </>
@@ -633,7 +650,7 @@ export default function Builder() {
 
             {hasAnyItem && outfitIsHarmonious(outfit) && (
               <View style={styles.harmonyRow}>
-                <Text style={styles.harmonyText}>✨ Colour-matched · {occasion} · {weather?.temp}°C</Text>
+                <Text style={styles.harmonyText}>✨ Colour-matched · {occasion} · {weather?.temp}°{tempUnit}</Text>
                 <Text style={styles.harmonySubtext}>
                   {isLogged ? "Outfit logged for today" : "Tap any slot to change a piece"}
                 </Text>

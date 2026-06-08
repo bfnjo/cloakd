@@ -17,13 +17,22 @@ export default function Home() {
   const [userName, setUserName] = useState("");
   const [weather, setWeather] = useState({ temp: "--", description: "Loading...", emoji: "🌤️", city: "..." });
   const [recentOutfits, setRecentOutfits] = useState<RecentOutfit[]>([]);
+  const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
 
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserName(user.displayName || "there");
         fetchRecentOutfits(user.uid);
+        const { data: settingsData } = await supabase
+          .from("user_settings")
+          .select("temperature_unit")
+          .eq("firebase_uid", user.uid)
+          .single();
+        const unit: "C" | "F" = settingsData?.temperature_unit ?? "C";
+        setTempUnit(unit);
+        fetchWeather(unit);
       } else {
         router.replace("/(auth)");
       }
@@ -47,42 +56,39 @@ export default function Home() {
     setRecentOutfits(formatted);
   };
 
-  useEffect(() => {
-    const fetchWeather = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setWeather({ temp: "--", description: "Location unavailable", emoji: "🌤️", city: "Unknown" });
-        return;
-      }
-      const location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
+  const fetchWeather = async (unit: "C" | "F" = "C") => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setWeather({ temp: "--", description: "Location unavailable", emoji: "🌤️", city: "Unknown" });
+      return;
+    }
+    const location = await Location.getCurrentPositionAsync({});
+    const { latitude, longitude } = location.coords;
 
-      const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
-      const city = geocode[0]?.city || geocode[0]?.region || "Unknown";
+    const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+    const city = geocode[0]?.city || geocode[0]?.region || "Unknown";
 
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`
-      );
-      const data = await response.json();
-      const temp = Math.round(data.current.temperature_2m);
-      const code = data.current.weathercode;
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`
+    );
+    const data = await response.json();
+    const tempC = Math.round(data.current.temperature_2m);
+    const code = data.current.weathercode;
 
-      const getWeatherInfo = (code: number) => {
-        if (code === 0) return { description: "Clear skies", emoji: "☀️" };
-        if (code <= 3) return { description: "Partly cloudy", emoji: "⛅" };
-        if (code <= 48) return { description: "Foggy", emoji: "🌫️" };
-        if (code <= 67) return { description: "Rainy", emoji: "🌧️" };
-        if (code <= 77) return { description: "Snowy", emoji: "❄️" };
-        if (code <= 82) return { description: "Showers", emoji: "🌦️" };
-        return { description: "Stormy", emoji: "⛈️" };
-      };
-
-      const { description, emoji } = getWeatherInfo(code);
-      setWeather({ temp: temp.toString(), description, emoji, city });
+    const getWeatherInfo = (code: number) => {
+      if (code === 0) return { description: "Clear skies", emoji: "☀️" };
+      if (code <= 3) return { description: "Partly cloudy", emoji: "⛅" };
+      if (code <= 48) return { description: "Foggy", emoji: "🌫️" };
+      if (code <= 67) return { description: "Rainy", emoji: "🌧️" };
+      if (code <= 77) return { description: "Snowy", emoji: "❄️" };
+      if (code <= 82) return { description: "Showers", emoji: "🌦️" };
+      return { description: "Stormy", emoji: "⛈️" };
     };
 
-    fetchWeather();
-  }, []);
+    const { description, emoji } = getWeatherInfo(code);
+    const displayTemp = unit === "F" ? Math.round(tempC * 9 / 5 + 32) : tempC;
+    setWeather({ temp: displayTemp.toString(), description, emoji, city });
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -125,7 +131,7 @@ export default function Home() {
       {/* Today's Weather Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Today's Weather</Text>
-        <Text style={styles.weatherText}>{weather.emoji} {weather.temp}°C · {weather.city}</Text>
+        <Text style={styles.weatherText}>{weather.emoji} {weather.temp}°{tempUnit} · {weather.city}</Text>
         <Text style={styles.weatherSub}>{getWeatherOutfitTip(weather.description)}</Text>
       </View>
 
