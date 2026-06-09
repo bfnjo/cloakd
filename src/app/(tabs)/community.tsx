@@ -1,7 +1,355 @@
-import { router } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert, Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet, Text,
+  TextInput,
+  TouchableOpacity, View,
+} from "react-native";
+import ClothingIcon from "../../components/ClothingIcon";
+import { auth } from "../../firebaseConfig";
+import { supabase } from "../../supabaseConfig";
+
+type ClothingItem = {
+  id: string;
+  name: string;
+  category: string;
+  colour: string;
+  subcategory: string;
+};
+
+type OutfitLog = {
+  id: string;
+  date: string;
+  items: ClothingItem[];
+};
+
+type CommunityPost = {
+  id: string;
+  user_id: string;
+  username: string;
+  caption: string;
+  photo_url: string | null;
+  outfit_date: string;
+  created_at: string;
+  items: ClothingItem[];
+};
+
+function DynamicImage({ uri }: { uri: string }) {
+  const [aspectRatio, setAspectRatio] = useState(1);
+  useEffect(() => {
+    Image.getSize(uri, (w, h) => { if (h > 0) setAspectRatio(w / h); });
+  }, [uri]);
+  return (
+    <Image
+      source={{ uri }}
+      style={{ width: "55%", aspectRatio, borderRadius: 8, marginBottom: 10, alignSelf: "center" }}
+      resizeMode="cover"
+    />
+  );
+}
 
 export default function Community() {
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [loadingFeed, setLoadingFeed] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
+
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [logs, setLogs] = useState<OutfitLog[]>([]);
+  const [selectedLog, setSelectedLog] = useState<OutfitLog | null>(null);
+  const [caption, setCaption] = useState("");
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [viewingPost, setViewingPost] = useState<CommunityPost | null>(null);
+
+  const getUser = () =>
+    new Promise<any>((resolve) => {
+      const unsub = auth.onAuthStateChanged((u) => { unsub(); resolve(u); });
+    });
+
+  const fetchFeed = async () => {
+    setLoadingFeed(true);
+    const user = await getUser();
+    if (user) setCurrentUserId(user.uid);
+
+    const { data, error } = await supabase
+      .from("community_posts")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) { setLoadingFeed(false); return; }
+
+    const enriched: CommunityPost[] = [];
+    for (const post of data || []) {
+      const { data: logItems } = await supabase
+        .from("outfit_log_items")
+        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory)")
+        .eq("outfit_log_id", post.outfit_log_id);
+      enriched.push({
+        ...post,
+        items: (logItems || []).map((li: any) => li.clothing_items).filter(Boolean),
+      });
+    }
+    setPosts(enriched);
+    setLoadingFeed(false);
+  };
+
+  const fetchLogs = useCallback(async (month: Date) => {
+    const user = await getUser();
+    if (!user) return;
+    const year = month.getFullYear();
+    const m = month.getMonth();
+    const start = `${year}-${String(m + 1).padStart(2, "0")}-01`;
+    const end = `${year}-${String(m + 1).padStart(2, "0")}-${new Date(year, m + 1, 0).getDate()}`;
+    const { data: logData } = await supabase
+      .from("outfit_logs")
+      .select("id, date")
+      .eq("user_id", user.uid)
+      .gte("date", start)
+      .lte("date", end)
+      .order("date", { ascending: false });
+    if (!logData) return;
+
+    const withItems: OutfitLog[] = [];
+    for (const log of logData) {
+      const { data: logItems } = await supabase
+        .from("outfit_log_items")
+        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory)")
+        .eq("outfit_log_id", log.id);
+      withItems.push({
+        id: log.id,
+        date: log.date,
+        items: (logItems || []).map((li: any) => li.clothing_items).filter(Boolean),
+      });
+    }
+    setLogs(withItems);
+  }, []);
+
+  useFocusEffect(useCallback(() => { fetchFeed(); }, []));
+
+  const openShareModal = () => {
+    const now = new Date();
+    setCurrentMonth(now);
+    setSelectedLog(null);
+    setCaption("");
+    setPhotoUri(null);
+    fetchLogs(now);
+    setShareModalVisible(true);
+  };
+
+  const openEditModal = (post: CommunityPost) => {
+    setEditingPost(post);
+    setCaption(post.caption || "");
+    setPhotoUri(post.photo_url || null);
+    setEditModalVisible(true);
+  };
+
+  const handleMonthChange = (direction: number) => {
+    const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + direction);
+    setCurrentMonth(d);
+    fetchLogs(d);
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      if (Platform.OS === "web") window.alert("Camera roll permission is required.");
+      else Alert.alert("Permission required", "Camera roll permission is required.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 5],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const uploadPhoto = async (uri: string, userId: string): Promise<string | null> => {
+    try {
+      const ext = "jpg";
+      const path = `${userId}/${Date.now()}.${ext}`;
+
+      if (Platform.OS === "web") {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const { error } = await supabase.storage
+          .from("community-posts")
+          .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+        if (error) { console.error("Upload error:", error); return null; }
+      } else {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const { error } = await supabase.storage
+          .from("community-posts")
+          .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+        if (error) { console.error("Upload error:", error); return null; }
+      }
+
+      const { data } = supabase.storage.from("community-posts").getPublicUrl(path);
+      return data.publicUrl;
+    } catch (e) {
+      console.error("Upload exception:", e);
+      return null;
+    }
+  };
+
+  const handleShare = async () => {
+    if (!selectedLog) return;
+    setSharing(true);
+    const user = await getUser();
+    if (!user) { setSharing(false); return; }
+
+    const { data: settings } = await supabase
+      .from("user_settings")
+      .select("username")
+      .eq("firebase_uid", user.uid)
+      .single();
+
+    let uploadedUrl: string | null = null;
+    if (photoUri && !photoUri.startsWith("http")) {
+      uploadedUrl = await uploadPhoto(photoUri, user.uid);
+    }
+
+    const { error } = await supabase.from("community_posts").insert({
+      user_id: user.uid,
+      username: settings?.username || "Anonymous",
+      outfit_log_id: selectedLog.id,
+      outfit_date: selectedLog.date,
+      caption: caption.trim(),
+      photo_url: uploadedUrl,
+    });
+
+    setSharing(false);
+    if (error) {
+      if (Platform.OS === "web") window.alert("Failed to share: " + error.message);
+      else Alert.alert("Error", error.message);
+      return;
+    }
+    setShareModalVisible(false);
+    setSelectedLog(null);
+    setCaption("");
+    setPhotoUri(null);
+    fetchFeed();
+  };
+
+  const handleEdit = async () => {
+    if (!editingPost) return;
+    setSharing(true);
+    const user = await getUser();
+    if (!user) { setSharing(false); return; }
+
+    let finalPhotoUrl = editingPost.photo_url;
+    if (photoUri && !photoUri.startsWith("http")) {
+      finalPhotoUrl = await uploadPhoto(photoUri, user.uid);
+    } else if (!photoUri) {
+      finalPhotoUrl = null;
+    }
+
+    const { error } = await supabase
+      .from("community_posts")
+      .update({ caption: caption.trim(), photo_url: finalPhotoUrl })
+      .eq("id", editingPost.id);
+
+    setSharing(false);
+    if (error) {
+      if (Platform.OS === "web") window.alert("Failed to update: " + error.message);
+      else Alert.alert("Error", error.message);
+      return;
+    }
+    setEditModalVisible(false);
+    setEditingPost(null);
+    setCaption("");
+    setPhotoUri(null);
+    fetchFeed();
+  };
+
+  const handleDelete = async (postId: string) => {
+    const confirmed =
+      Platform.OS === "web"
+        ? window.confirm("Delete this post?")
+        : await new Promise<boolean>((resolve) => {
+            Alert.alert("Delete Post", "Are you sure?", [
+              { text: "Cancel", onPress: () => resolve(false) },
+              { text: "Delete", style: "destructive", onPress: () => resolve(true) },
+            ]);
+          });
+    if (!confirmed) return;
+    await supabase.from("community_posts").delete().eq("id", postId);
+    fetchFeed();
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  const formatTimeAgo = (isoStr: string) => {
+    const diff = Date.now() - new Date(isoStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return { firstDay, daysInMonth };
+  };
+
+  const { firstDay, daysInMonth } = getDaysInMonth(currentMonth);
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const DAY_SIZE = 40;
+
+  const renderItemChips = (items: ClothingItem[]) => (
+    <View style={styles.itemsRow}>
+      {items.map((item) => (
+        <View key={item.id} style={styles.itemChip}>
+          <ClothingIcon category={item.category} subcategory={item.subcategory} size={14} colour={item.colour} />
+          <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.itemColour}>{item.colour}</Text>
+        </View>
+      ))}
+    </View>
+  );
+
+  const renderPhotoSection = (isEdit = false) => (
+    <View style={styles.photoSection}>
+      {photoUri ? (
+        <View style={styles.photoPreviewWrapper}>
+          <Image source={{ uri: photoUri }} style={styles.photoPreview} resizeMode="contain" />
+          <TouchableOpacity style={styles.photoRemove} onPress={() => setPhotoUri(null)}>
+            <Text style={styles.photoRemoveText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.photoPickerBtn} onPress={pickImage}>
+          <Text style={styles.photoPickerIcon}>📷</Text>
+          <Text style={styles.photoPickerText}>
+            {isEdit ? "Change photo" : "Add a photo (optional)"}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -11,22 +359,394 @@ export default function Community() {
         <Text style={styles.title}>Community</Text>
         <View style={{ width: 60 }} />
       </View>
-      <View style={styles.body}>
-        <Text style={styles.emoji}>🌐</Text>
-        <Text style={styles.text}>Community Feed</Text>
-        <Text style={styles.subtext}>Coming soon</Text>
-      </View>
+
+      {loadingFeed ? (
+        <View style={styles.center}>
+          <ActivityIndicator color="#7B7FE8" />
+        </View>
+      ) : posts.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={styles.emptyEmoji}>🌐</Text>
+          <Text style={styles.emptyTitle}>No posts yet</Text>
+          <Text style={styles.emptySubtext}>Be the first to share an outfit</Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.feed} showsVerticalScrollIndicator={false}>
+          {posts.map((post) => (
+            <TouchableOpacity key={post.id} style={styles.postCard} onPress={() => setViewingPost(post)} activeOpacity={0.85}>
+              <View style={styles.postHeader}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{post.username.charAt(0).toUpperCase()}</Text>
+                </View>
+                <View style={styles.postMeta}>
+                  <Text style={styles.username}>{post.username}</Text>
+                  <View style={styles.postMetaRow}>
+                    {post.outfit_date ? (
+                      <Text style={styles.outfitDate}>📅 {formatDate(post.outfit_date)}</Text>
+                    ) : null}
+                    <Text style={styles.postTime}>{formatTimeAgo(post.created_at)}</Text>
+                  </View>
+                </View>
+                {post.user_id === currentUserId && (
+                  <View style={styles.postActions}>
+                    <TouchableOpacity onPress={() => openEditModal(post)} style={styles.actionBtn}>
+                      <Text style={styles.actionBtnText}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDelete(post.id)} style={[styles.actionBtn, styles.actionBtnDelete]}>
+                      <Text style={styles.actionBtnDeleteText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {post.photo_url ? (
+                <DynamicImage uri={post.photo_url} />
+              ) : null}
+
+              {renderItemChips(post.items)}
+              {post.caption ? <Text style={styles.caption}>{post.caption}</Text> : null}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
+      <TouchableOpacity style={styles.fab} onPress={openShareModal}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
+
+      {/* Share Modal */}
+      <Modal visible={shareModalVisible} animationType="slide" transparent presentationStyle="overFullScreen">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Share an Outfit</Text>
+              <TouchableOpacity onPress={() => setShareModalVisible(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.monthNav}>
+                <TouchableOpacity onPress={() => handleMonthChange(-1)}>
+                  <Text style={styles.monthArrow}>←</Text>
+                </TouchableOpacity>
+                <Text style={styles.monthLabel}>
+                  {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                </Text>
+                <TouchableOpacity onPress={() => handleMonthChange(1)}>
+                  <Text style={styles.monthArrow}>→</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.calGrid}>
+                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                  <View key={i} style={[styles.calCell, { width: DAY_SIZE, height: DAY_SIZE }]}>
+                    <Text style={styles.calDayLabel}>{d}</Text>
+                  </View>
+                ))}
+                {Array.from({ length: firstDay }).map((_, i) => (
+                  <View key={`e-${i}`} style={[styles.calCell, { width: DAY_SIZE, height: DAY_SIZE }]} />
+                ))}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                  const log = logs.find((l) => l.date === dateStr);
+                  const isSelected = selectedLog?.date === dateStr;
+                  return (
+                    <TouchableOpacity
+                      key={day}
+                      style={[
+                        styles.calCell, { width: DAY_SIZE, height: DAY_SIZE },
+                        log && styles.calCellLogged,
+                        isSelected && styles.calCellSelected,
+                      ]}
+                      onPress={() => log && setSelectedLog(isSelected ? null : log)}
+                      disabled={!log}
+                    >
+                      <Text style={[styles.calDayNum, isSelected && styles.calDayNumSelected]}>{day}</Text>
+                      {log && <View style={[styles.calDot, isSelected && styles.calDotSelected]} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {selectedLog ? (
+                <View style={styles.selectedOutfit}>
+                  <Text style={styles.selectedDate}>📅 {formatDate(selectedLog.date)}</Text>
+                  <View style={styles.selectedItems}>
+                    {selectedLog.items.map((item) => (
+                      <View key={item.id} style={styles.selectedItemChip}>
+                        <ClothingIcon category={item.category} subcategory={item.subcategory} size={13} colour={item.colour} />
+                        <Text style={styles.selectedItemText}>{item.name}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : (
+                <Text style={styles.selectPrompt}>Tap a highlighted date to select an outfit</Text>
+              )}
+
+              {renderPhotoSection(false)}
+
+              <TextInput
+                style={styles.captionInput}
+                placeholder="Add a caption... (optional)"
+                placeholderTextColor="#555"
+                value={caption}
+                onChangeText={setCaption}
+                maxLength={200}
+                multiline
+              />
+
+              <TouchableOpacity
+                style={[styles.shareBtn, (!selectedLog || sharing) && styles.shareBtnDisabled]}
+                onPress={handleShare}
+                disabled={!selectedLog || sharing}
+              >
+                {sharing ? <ActivityIndicator color="#fff" /> : <Text style={styles.shareBtnText}>Share to Community</Text>}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal visible={editModalVisible} animationType="slide" transparent presentationStyle="overFullScreen">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Post</Text>
+              <TouchableOpacity onPress={() => { setEditModalVisible(false); setEditingPost(null); setCaption(""); setPhotoUri(null); }}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {editingPost && (
+                <View style={styles.selectedOutfit}>
+                  <Text style={styles.selectedDate}>📅 {formatDate(editingPost.outfit_date)}</Text>
+                  <View style={styles.selectedItems}>
+                    {editingPost.items.map((item) => (
+                      <View key={item.id} style={styles.selectedItemChip}>
+                        <ClothingIcon category={item.category} subcategory={item.subcategory} size={13} colour={item.colour} />
+                        <Text style={styles.selectedItemText}>{item.name}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {renderPhotoSection(true)}
+
+              <TextInput
+                style={styles.captionInput}
+                placeholder="Edit caption..."
+                placeholderTextColor="#555"
+                value={caption}
+                onChangeText={setCaption}
+                maxLength={200}
+                multiline
+              />
+
+              <TouchableOpacity
+                style={[styles.shareBtn, sharing && styles.shareBtnDisabled]}
+                onPress={handleEdit}
+                disabled={sharing}
+              >
+                {sharing ? <ActivityIndicator color="#fff" /> : <Text style={styles.shareBtnText}>Save Changes</Text>}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Full-screen post modal */}
+      <Modal visible={!!viewingPost} animationType="fade" transparent presentationStyle="overFullScreen">
+        <View style={styles.fullscreenOverlay}>
+          <TouchableOpacity style={styles.fullscreenClose} onPress={() => setViewingPost(null)}>
+            <Text style={styles.fullscreenCloseText}>✕</Text>
+          </TouchableOpacity>
+          {viewingPost && (
+            <ScrollView contentContainerStyle={styles.fullscreenContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.fullscreenHeader}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{viewingPost.username.charAt(0).toUpperCase()}</Text>
+                </View>
+                <View style={styles.postMeta}>
+                  <Text style={styles.username}>{viewingPost.username}</Text>
+                  <View style={styles.postMetaRow}>
+                    {viewingPost.outfit_date ? (
+                      <Text style={styles.outfitDate}>📅 {formatDate(viewingPost.outfit_date)}</Text>
+                    ) : null}
+                    <Text style={styles.postTime}>{formatTimeAgo(viewingPost.created_at)}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {viewingPost.caption ? (
+                <Text style={styles.fullscreenCaption}>{viewingPost.caption}</Text>
+              ) : null}
+
+              <View style={styles.fullscreenIconGrid}>
+                {viewingPost.items.map((item) => (
+                  <View key={item.id} style={styles.fullscreenIconCard}>
+                    <ClothingIcon
+                      category={item.category}
+                      subcategory={item.subcategory}
+                      size={80}
+                      colour={item.colour}
+                    />
+                    <Text style={styles.fullscreenIconName} numberOfLines={2}>{item.name}</Text>
+                    <Text style={styles.fullscreenIconColour}>{item.colour}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {viewingPost.photo_url ? (
+                <Image
+                  source={{ uri: viewingPost.photo_url }}
+                  style={styles.fullscreenPhoto}
+                  resizeMode="contain"
+                />
+              ) : null}
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", paddingTop: 60, paddingHorizontal: 24 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-  title: { fontSize: 24, fontWeight: "bold", color: "#fff" },
+  container: { flex: 1, backgroundColor: "#000", paddingTop: 60 },
+  header: { paddingHorizontal: 24, marginBottom: 16, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   backText: { color: "#7B7FE8", fontSize: 16 },
-  body: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emoji: { fontSize: 48, marginBottom: 16 },
-  text: { color: "#fff", fontSize: 18, fontWeight: "bold", marginBottom: 8 },
-  subtext: { color: "#888", fontSize: 14 },
+  title: { fontSize: 24, fontWeight: "bold", color: "#fff" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyEmoji: { fontSize: 48, marginBottom: 16 },
+  emptyTitle: { color: "#fff", fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  emptySubtext: { color: "#888", fontSize: 14 },
+  feed: { paddingHorizontal: 16, paddingBottom: 100 },
+  postCard: {
+    backgroundColor: "#111", borderRadius: 12, padding: 14,
+    marginBottom: 12, borderWidth: 1, borderColor: "#222",
+  },
+  postHeader: { flexDirection: "row", alignItems: "flex-start", marginBottom: 10, gap: 10 },
+  avatar: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: "#7B7FE8", justifyContent: "center", alignItems: "center",
+  },
+  avatarText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  postMeta: { flex: 1 },
+  postMetaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 },
+  username: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  outfitDate: { color: "#7B7FE8", fontSize: 11 },
+  postTime: { color: "#555", fontSize: 11 },
+  postActions: { flexDirection: "row", gap: 6 },
+  actionBtn: {
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
+    backgroundColor: "#222", borderWidth: 1, borderColor: "#333",
+  },
+  actionBtnText: { color: "#aaa", fontSize: 12 },
+  actionBtnDelete: { backgroundColor: "#1a0000", borderColor: "#440000" },
+  actionBtnDeleteText: { color: "#ff4444", fontSize: 12 },
+  postPhoto: { width: "40%", aspectRatio: 4/3, borderRadius: 8, marginBottom: 10, alignSelf: "center" },
+  itemsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 8 },
+  itemChip: {
+    backgroundColor: "#1a1a1a", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5,
+    flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: "#2a2a2a",
+  },
+  itemName: { color: "#ccc", fontSize: 12, maxWidth: 80 },
+  itemColour: { color: "#555", fontSize: 11 },
+  caption: { color: "#aaa", fontSize: 13, marginTop: 2 },
+  fab: {
+    position: "absolute", bottom: 90, right: 24,
+    width: 52, height: 52, borderRadius: 26,
+    backgroundColor: "#7B7FE8", justifyContent: "center", alignItems: "center",
+    shadowColor: "#7B7FE8", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8,
+    elevation: 8,
+  },
+  fabText: { color: "#fff", fontSize: 28, lineHeight: 32, fontWeight: "300" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "flex-end" },
+  modalContent: {
+    backgroundColor: "#111", borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36, maxHeight: "90%",
+  },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  modalTitle: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  modalClose: { color: "#555", fontSize: 20 },
+  monthNav: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  monthArrow: { color: "#7B7FE8", fontSize: 20, paddingHorizontal: 8 },
+  monthLabel: { color: "#fff", fontSize: 15, fontWeight: "600" },
+  calGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start", marginBottom: 12 },
+  calDayLabel: { color: "#555", fontSize: 11, textAlign: "center" },
+  calCell: { justifyContent: "center", alignItems: "center", borderRadius: 6, margin: 2 },
+  calCellLogged: { backgroundColor: "#1a1a2e" },
+  calCellSelected: { backgroundColor: "#7B7FE8" },
+  calDayNum: { color: "#888", fontSize: 12 },
+  calDayNumSelected: { color: "#fff", fontWeight: "bold" },
+  calDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: "#7B7FE8", marginTop: 1 },
+  calDotSelected: { backgroundColor: "#fff" },
+  selectedOutfit: {
+    backgroundColor: "#1a1a1a", borderRadius: 10, padding: 12, marginBottom: 12,
+    borderWidth: 1, borderColor: "#333",
+  },
+  selectedDate: { color: "#7B7FE8", fontSize: 13, fontWeight: "600", marginBottom: 8 },
+  selectedItems: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  selectedItemChip: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: "#222", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4,
+  },
+  selectedItemText: { color: "#ddd", fontSize: 12 },
+  selectPrompt: { color: "#555", fontSize: 13, textAlign: "center", marginVertical: 12 },
+  photoSection: { marginBottom: 14 },
+  photoPickerBtn: {
+    borderWidth: 1, borderColor: "#333", borderRadius: 10, borderStyle: "dashed",
+    padding: 16, alignItems: "center", flexDirection: "row", gap: 10, backgroundColor: "#1a1a1a",
+  },
+  photoPickerIcon: { fontSize: 20 },
+  photoPickerText: { color: "#666", fontSize: 14 },
+  photoPreviewWrapper: { position: "relative" },
+  photoPreview: { width: "100%", height: 200, borderRadius: 10 },
+  photoRemove: {
+    position: "absolute", top: 8, right: 8,
+    backgroundColor: "rgba(0,0,0,0.6)", borderRadius: 12,
+    width: 24, height: 24, justifyContent: "center", alignItems: "center",
+  },
+  photoRemoveText: { color: "#fff", fontSize: 12 },
+  captionInput: {
+    backgroundColor: "#1a1a1a", borderRadius: 10, borderWidth: 1, borderColor: "#333",
+    color: "#fff", padding: 12, fontSize: 14, marginBottom: 14, minHeight: 56,
+  },
+  shareBtn: {
+    backgroundColor: "#7B7FE8", borderRadius: 12, paddingVertical: 14, alignItems: "center", marginBottom: 8,
+  },
+  shareBtnDisabled: { opacity: 0.4 },
+  shareBtnText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
+  fullscreenOverlay: {
+    flex: 1, backgroundColor: "#000",
+  },
+  fullscreenClose: {
+    position: "absolute", top: 56, right: 20, zIndex: 10,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center", alignItems: "center",
+  },
+  fullscreenCloseText: { color: "#fff", fontSize: 16 },
+  fullscreenContent: { paddingTop: 100, paddingHorizontal: 20, paddingBottom: 60 },
+  fullscreenHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 20 },
+  fullscreenPhoto: { width: "100%", height: 420, borderRadius: 12, marginBottom: 20 },
+  fullscreenIconGrid: {
+    flexDirection: "row", flexWrap: "wrap", justifyContent: "center",
+    gap: 12, marginBottom: 20, paddingVertical: 12,
+  },
+  fullscreenIconCard: {
+    width: 130, height: 160,
+    backgroundColor: "#1a1a1a", borderRadius: 12,
+    borderWidth: 1, borderColor: "#2a2a2a",
+    alignItems: "center", justifyContent: "center",
+    paddingVertical: 12, paddingHorizontal: 8, gap: 8,
+  },
+  fullscreenIconItem: { alignItems: "center", gap: 4, width: 90 },
+  fullscreenIconName: { color: "#ddd", fontSize: 12, textAlign: "center", fontWeight: "500" },
+  fullscreenIconColour: { color: "#666", fontSize: 11, textAlign: "center" },
+  fullscreenCaption: { color: "#ccc", fontSize: 20, lineHeight: 24, marginBottom: 20 },
 });
