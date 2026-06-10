@@ -135,8 +135,8 @@ The outfit builder suggests outfit combinations built entirely from clothes the 
  
 **[Current Progress]**
  
-The outfit builder feature has not been made yet.
- 
+Basic outfit builder feature has been created. Builder will retrieve real time weather data and ask for the type of occasion (casual, office, formal, outdoor, date night). Users can then select each individual item from their wardrobe if they want to build the outfit themselves or they can click the generate outfit button and the builder will do all the work for them. The outfit builder uses specific colour combinations that go well with each other to build the outfit. Once the user is satisfied with the outfit, they can click log outfit and the outfit will be saved and logged on the calendar as well. 30-day rediscovery and pushing of unworn pieces has not been fully implemented in the builder yet.
+
 ---
  
 ### Occasion and Weather Filter
@@ -147,7 +147,7 @@ The filter asks the user where they are going and what they will be doing. It us
  
 **[Current Progress]**
  
-Open-Meteo API integration is complete and returning live weather data for the user's current location. The logic to filter wardrobe items by temperature range and occasion tag has not yet been connected to the outfit builder.
+Open-Meteo API integration is complete and returning live weather data for the user's current location. The logic to filter wardrobe items by temperature range and occasion tag has been connected to the outfit builder.
  
 ---
  
@@ -178,7 +178,7 @@ Users can opt in to post outfits to the CLOAKD community feed. Privacy is the de
  
 **[Current Progress]**
  
-The community feed has not been built yet.
+A basic share outfits feature has been created. Users can select the outfits that they have logged on specific dates and add pictures or captions if they want to and share it onto the community feed page. Currently, the liking and saving system has not been done yet.
  
 ---
 
