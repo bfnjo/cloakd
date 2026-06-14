@@ -92,16 +92,22 @@ export default function Settings() {
         { firebase_uid: uid, ...settings, updated_at: new Date().toISOString() },
         { onConflict: "firebase_uid" }
       );
-    setSaving(false);
     if (error) {
+      setSaving(false);
       if (error.code === "23505") {
         Alert.alert("Username taken", "That username is already in use.");
       } else {
         Alert.alert("Error", "Failed to save settings.");
       }
-    } else {
-      Alert.alert("Saved", "Your settings have been updated.");
+      return;
     }
+    // Propagate new username to all community posts and likes by this user
+    await Promise.all([
+      supabase.from("community_posts").update({ username: settings.username.trim() }).eq("user_id", uid),
+      supabase.from("post_likes").update({ username: settings.username.trim() }).eq("user_id", uid),
+    ]);
+    setSaving(false);
+    Alert.alert("Saved", "Your settings have been updated.");
   };
 
   const handleDeleteAccount = async () => {

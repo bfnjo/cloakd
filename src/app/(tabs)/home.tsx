@@ -18,6 +18,7 @@ export default function Home() {
   const [weather, setWeather] = useState({ temp: "--", description: "Loading...", emoji: "🌤️", city: "..." });
   const [recentOutfits, setRecentOutfits] = useState<RecentOutfit[]>([]);
   const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
+  const [streak, setStreak] = useState(0);
 
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function Home() {
       if (user) {
         setUserName(user.displayName || "there");
         fetchRecentOutfits(user.uid);
+        fetchStreak(user.uid);
         const { data: settingsData } = await supabase
           .from("user_settings")
           .select("temperature_unit")
@@ -39,6 +41,35 @@ export default function Home() {
     });
     return unsubscribe;
   }, []);
+
+  const fetchStreak = async (uid: string) => {
+    const { data } = await supabase
+      .from("outfit_logs")
+      .select("date")
+      .eq("user_id", uid)
+      .order("date", { ascending: false })
+      .limit(400);
+    if (!data || data.length === 0) { setStreak(0); return; }
+
+    const dates = [...new Set(data.map((r: any) => r.date as string))].sort().reverse();
+
+    const toDateStr = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const today = toDateStr(new Date());
+    const yesterday = toDateStr(new Date(Date.now() - 86400000));
+
+    if (dates[0] !== today && dates[0] !== yesterday) { setStreak(0); return; }
+
+    let count = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1] + "T12:00:00");
+      const curr = new Date(dates[i] + "T12:00:00");
+      const diff = Math.round((prev.getTime() - curr.getTime()) / 86400000);
+      if (diff === 1) { count++; } else { break; }
+    }
+
+    setStreak(count >= 2 ? count : 0);
+  };
 
   const fetchRecentOutfits = async (uid: string) => {
     const { data, error } = await supabase
@@ -158,8 +189,12 @@ export default function Home() {
 
       {/* Streak */}
       <View style={styles.streakCard}>
-        <Text style={styles.streakText}>🔥 0 day streak</Text>
-        <Text style={styles.streakSub}>Keep logging your outfits!</Text>
+        <Text style={styles.streakText}>
+          {streak >= 2 ? `🔥 ${streak} day streak` : "🔥 No streak yet"}
+        </Text>
+        <Text style={styles.streakSub}>
+          {streak >= 2 ? "Keep it up!" : "Log 2 days in a row to start one!"}
+        </Text>
       </View>
 
       {/* Recent Outfits */}
@@ -296,9 +331,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: "#ff6b0033",
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 4,
   },
   streakText: {
     fontSize: 18,

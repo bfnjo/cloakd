@@ -21,6 +21,9 @@ type ClothingItem = {
   category: string;
   colour: string;
   subcategory: string;
+  brand?: string;
+  price?: number;
+  material?: string;
 };
 
 type OutfitLog = {
@@ -37,7 +40,14 @@ type CommunityPost = {
   photo_url: string | null;
   outfit_date: string;
   created_at: string;
+  streak: number;
   items: ClothingItem[];
+};
+
+type LikeInfo = {
+  count: number;
+  liked: boolean;
+  likers: string[];
 };
 
 function DynamicImage({ uri }: { uri: string }) {
@@ -58,6 +68,10 @@ export default function Community() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserStreak, setCurrentUserStreak] = useState(0);
+  const [likesMap, setLikesMap] = useState<Record<string, LikeInfo>>({});
+  const [likersModalPost, setLikersModalPost] = useState<CommunityPost | null>(null);
+  const [selectedClothingItem, setSelectedClothingItem] = useState<ClothingItem | null>(null);
 
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -76,10 +90,37 @@ export default function Community() {
       const unsub = auth.onAuthStateChanged((u) => { unsub(); resolve(u); });
     });
 
+  const computeStreak = async (uid: string): Promise<number> => {
+    const { data } = await supabase
+      .from("outfit_logs")
+      .select("date")
+      .eq("user_id", uid)
+      .order("date", { ascending: false })
+      .limit(400);
+    if (!data || data.length === 0) return 0;
+    const dates = [...new Set(data.map((r: any) => r.date as string))].sort().reverse();
+    const toStr = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const today = toStr(new Date());
+    const yesterday = toStr(new Date(Date.now() - 86400000));
+    if (dates[0] !== today && dates[0] !== yesterday) return 0;
+    let count = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1] + "T12:00:00");
+      const curr = new Date(dates[i] + "T12:00:00");
+      const diff = Math.round((prev.getTime() - curr.getTime()) / 86400000);
+      if (diff === 1) { count++; } else { break; }
+    }
+    return count >= 2 ? count : 0;
+  };
+
   const fetchFeed = async () => {
     setLoadingFeed(true);
     const user = await getUser();
-    if (user) setCurrentUserId(user.uid);
+    if (user) {
+      setCurrentUserId(user.uid);
+      computeStreak(user.uid).then(setCurrentUserStreak);
+    }
 
     const { data, error } = await supabase
       .from("community_posts")
@@ -92,7 +133,7 @@ export default function Community() {
     for (const post of data || []) {
       const { data: logItems } = await supabase
         .from("outfit_log_items")
-        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory)")
+        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory, brand, price, material)")
         .eq("outfit_log_id", post.outfit_log_id);
       enriched.push({
         ...post,
@@ -100,7 +141,65 @@ export default function Community() {
       });
     }
     setPosts(enriched);
+    const uid = (await getUser())?.uid ?? null;
+    await fetchLikes(enriched.map((p) => p.id), uid);
     setLoadingFeed(false);
+  };
+
+  const fetchLikes = async (postIds: string[], userId: string | null) => {
+    if (postIds.length === 0) return;
+    const { data, error } = await supabase
+      .from("post_likes")
+      .select("post_id, user_id, username")
+      .in("post_id", postIds);
+    if (error) { console.error("fetchLikes error:", error.message); return; }
+    const map: Record<string, LikeInfo> = {};
+    for (const postId of postIds) {
+      const rows = (data || []).filter((r: any) => r.post_id === postId);
+      map[postId] = {
+        count: rows.length,
+        liked: rows.some((r: any) => r.user_id === userId),
+        likers: rows.map((r: any) => r.username),
+      };
+    }
+    setLikesMap(map);
+  };
+
+  const toggleLike = async (postId: string) => {
+    const user = await getUser();
+    if (!user) return;
+    const current = likesMap[postId] ?? { count: 0, liked: false, likers: [] };
+    if (current.liked) {
+      // Optimistic update
+      setLikesMap((prev) => ({
+        ...prev,
+        [postId]: { count: Math.max(0, current.count - 1), liked: false, likers: current.likers.slice(0, -1) },
+      }));
+      const { error } = await supabase.from("post_likes").delete().eq("post_id", postId).eq("user_id", user.uid);
+      if (error) {
+        console.error("unlike error:", error.message);
+        // Revert
+        setLikesMap((prev) => ({ ...prev, [postId]: current }));
+      }
+    } else {
+      const { data: settings } = await supabase
+        .from("user_settings")
+        .select("username")
+        .eq("firebase_uid", user.uid)
+        .single();
+      const username = settings?.username || "Anonymous";
+      // Optimistic update
+      setLikesMap((prev) => ({
+        ...prev,
+        [postId]: { count: current.count + 1, liked: true, likers: [...current.likers, username] },
+      }));
+      const { error } = await supabase.from("post_likes").insert({ post_id: postId, user_id: user.uid, username });
+      if (error) {
+        console.error("like error:", error.message);
+        // Revert
+        setLikesMap((prev) => ({ ...prev, [postId]: current }));
+      }
+    }
   };
 
   const fetchLogs = useCallback(async (month: Date) => {
@@ -123,7 +222,7 @@ export default function Community() {
     for (const log of logData) {
       const { data: logItems } = await supabase
         .from("outfit_log_items")
-        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory)")
+        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory, brand, price, material)")
         .eq("outfit_log_id", log.id);
       withItems.push({
         id: log.id,
@@ -212,16 +311,11 @@ export default function Community() {
     const user = await getUser();
     if (!user) { setSharing(false); return; }
 
-    const { data: settings } = await supabase
-      .from("user_settings")
-      .select("username")
-      .eq("firebase_uid", user.uid)
-      .single();
-
-    let uploadedUrl: string | null = null;
-    if (photoUri && !photoUri.startsWith("http")) {
-      uploadedUrl = await uploadPhoto(photoUri, user.uid);
-    }
+    const [{ data: settings }, currentStreak, uploadedUrl] = await Promise.all([
+      supabase.from("user_settings").select("username").eq("firebase_uid", user.uid).single(),
+      computeStreak(user.uid),
+      photoUri && !photoUri.startsWith("http") ? uploadPhoto(photoUri, user.uid) : Promise.resolve(null),
+    ]);
 
     const { error } = await supabase.from("community_posts").insert({
       user_id: user.uid,
@@ -230,6 +324,7 @@ export default function Community() {
       outfit_date: selectedLog.date,
       caption: caption.trim(),
       photo_url: uploadedUrl,
+      streak: currentStreak,
     });
 
     setSharing(false);
@@ -321,11 +416,16 @@ export default function Community() {
   const renderItemChips = (items: ClothingItem[]) => (
     <View style={styles.itemsRow}>
       {items.map((item) => (
-        <View key={item.id} style={styles.itemChip}>
+        <TouchableOpacity
+          key={item.id}
+          style={styles.itemChip}
+          onPress={(e) => { e.stopPropagation(); setSelectedClothingItem(item); }}
+          activeOpacity={0.7}
+        >
           <ClothingIcon category={item.category} subcategory={item.subcategory} size={14} colour={item.colour} />
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
           <Text style={styles.itemColour}>{item.colour}</Text>
-        </View>
+        </TouchableOpacity>
       ))}
     </View>
   );
@@ -379,7 +479,14 @@ export default function Community() {
                   <Text style={styles.avatarText}>{post.username.charAt(0).toUpperCase()}</Text>
                 </View>
                 <View style={styles.postMeta}>
-                  <Text style={styles.username}>{post.username}</Text>
+                  <View style={styles.usernameRow}>
+                    <Text style={styles.username}>{post.username}</Text>
+                    {post.user_id === currentUserId && currentUserStreak >= 2 && (
+                      <View style={styles.streakBadge}>
+                        <Text style={styles.streakBadgeText}>🔥 {currentUserStreak}</Text>
+                      </View>
+                    )}
+                  </View>
                   <View style={styles.postMetaRow}>
                     {post.outfit_date ? (
                       <Text style={styles.outfitDate}>📅 {formatDate(post.outfit_date)}</Text>
@@ -405,6 +512,25 @@ export default function Community() {
 
               {renderItemChips(post.items)}
               {post.caption ? <Text style={styles.caption}>{post.caption}</Text> : null}
+              <View style={styles.likeRow}>
+                <TouchableOpacity
+                  style={styles.likeBtn}
+                  onPress={(e) => { e.stopPropagation(); toggleLike(post.id); }}
+                >
+                  <Text style={[styles.likeHeart, likesMap[post.id]?.liked && styles.likeHeartActive]}>
+                    {likesMap[post.id]?.liked ? "♥" : "♡"}
+                  </Text>
+                  <Text style={styles.likeCount}>{likesMap[post.id]?.count ?? 0}</Text>
+                </TouchableOpacity>
+                {(likesMap[post.id]?.count ?? 0) > 0 && (
+                  <TouchableOpacity onPress={(e) => { e.stopPropagation(); setLikersModalPost(post); }}>
+                    <Text style={styles.likersLink}>
+                      {likesMap[post.id]?.likers.slice(0, 2).join(", ")}
+                      {(likesMap[post.id]?.count ?? 0) > 2 ? ` +${(likesMap[post.id]?.count ?? 0) - 2} more` : ""}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -558,6 +684,82 @@ export default function Community() {
         </View>
       </Modal>
       
+      {/* Clothing detail modal */}
+      <Modal visible={!!selectedClothingItem} animationType="slide" transparent presentationStyle="overFullScreen">
+        <View style={styles.modalOverlay}>
+          <View style={styles.clothingDetailBox}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Item Details</Text>
+              <TouchableOpacity onPress={() => setSelectedClothingItem(null)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            {selectedClothingItem && (
+              <>
+                <View style={styles.clothingIconLarge}>
+                  <ClothingIcon
+                    category={selectedClothingItem.category}
+                    subcategory={selectedClothingItem.subcategory}
+                    size={80}
+                    colour={selectedClothingItem.colour}
+                  />
+                </View>
+                <Text style={styles.clothingDetailName}>{selectedClothingItem.name}</Text>
+                <View style={styles.clothingDetailRows}>
+                  <View style={styles.clothingDetailRow}>
+                    <Text style={styles.clothingDetailLabel}>Type</Text>
+                    <Text style={styles.clothingDetailValue}>
+                      {selectedClothingItem.category}{selectedClothingItem.subcategory ? ` · ${selectedClothingItem.subcategory}` : ""}
+                    </Text>
+                  </View>
+                  <View style={styles.clothingDetailRow}>
+                    <Text style={styles.clothingDetailLabel}>Colour</Text>
+                    <Text style={styles.clothingDetailValue}>{selectedClothingItem.colour}</Text>
+                  </View>
+                  {selectedClothingItem.brand ? (
+                    <View style={styles.clothingDetailRow}>
+                      <Text style={styles.clothingDetailLabel}>Brand</Text>
+                      <Text style={styles.clothingDetailValue}>{selectedClothingItem.brand}</Text>
+                    </View>
+                  ) : null}
+                  {selectedClothingItem.price != null && selectedClothingItem.price > 0 ? (
+                    <View style={styles.clothingDetailRow}>
+                      <Text style={styles.clothingDetailLabel}>Cost</Text>
+                      <Text style={styles.clothingDetailValue}>${selectedClothingItem.price.toFixed(2)}</Text>
+                    </View>
+                  ) : null}
+                  {selectedClothingItem.material ? (
+                    <View style={styles.clothingDetailRow}>
+                      <Text style={styles.clothingDetailLabel}>Material</Text>
+                      <Text style={styles.clothingDetailValue}>{selectedClothingItem.material}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Likers modal */}
+      <Modal visible={!!likersModalPost} animationType="fade" transparent presentationStyle="overFullScreen">
+        <View style={styles.likersModalOverlay}>
+          <View style={styles.likersModalBox}>
+            <Text style={styles.likersModalTitle}>Liked by</Text>
+            {likersModalPost && (likesMap[likersModalPost.id]?.likers.length ?? 0) > 0 ? (
+              likesMap[likersModalPost.id].likers.map((name, i) => (
+                <Text key={i} style={styles.likersModalName}>{name}</Text>
+              ))
+            ) : (
+              <Text style={styles.likersModalEmpty}>No likes yet</Text>
+            )}
+            <TouchableOpacity onPress={() => setLikersModalPost(null)}>
+              <Text style={styles.likersModalClose}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Full-screen post modal */}
       <Modal visible={!!viewingPost} animationType="fade" transparent presentationStyle="overFullScreen">
         <View style={styles.fullscreenOverlay}>
@@ -584,6 +786,20 @@ export default function Community() {
               {viewingPost.caption ? (
                 <Text style={styles.fullscreenCaption}>{viewingPost.caption}</Text>
               ) : null}
+
+              <View style={styles.likeRow}>
+                <TouchableOpacity style={styles.likeBtn} onPress={() => toggleLike(viewingPost.id)}>
+                  <Text style={[styles.likeHeart, likesMap[viewingPost.id]?.liked && styles.likeHeartActive]}>
+                    {likesMap[viewingPost.id]?.liked ? "♥" : "♡"}
+                  </Text>
+                  <Text style={styles.likeCount}>{likesMap[viewingPost.id]?.count ?? 0} likes</Text>
+                </TouchableOpacity>
+                {(likesMap[viewingPost.id]?.count ?? 0) > 0 && (
+                  <TouchableOpacity onPress={() => setLikersModalPost(viewingPost)}>
+                    <Text style={styles.likersLink}>See who liked</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               <View style={styles.fullscreenIconGrid}>
                 {viewingPost.items.map((item) => (
@@ -749,4 +965,35 @@ const styles = StyleSheet.create({
   fullscreenIconName: { color: "#ddd", fontSize: 12, textAlign: "center", fontWeight: "500" },
   fullscreenIconColour: { color: "#666", fontSize: 11, textAlign: "center" },
   fullscreenCaption: { color: "#ccc", fontSize: 20, lineHeight: 24, marginBottom: 20 },
+  likeRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 8 },
+  likeBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
+  likeHeart: { fontSize: 20, color: "#555" },
+  likeHeartActive: { color: "#e05c7a" },
+  likeCount: { color: "#888", fontSize: 13 },
+  likersLink: { color: "#7B7FE8", fontSize: 12 },
+  likersModalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", alignItems: "center" },
+  likersModalBox: {
+    backgroundColor: "#111", borderRadius: 16, padding: 20, width: "80%",
+    borderWidth: 1, borderColor: "#222",
+  },
+  likersModalTitle: { color: "#fff", fontWeight: "bold", fontSize: 16, marginBottom: 14 },
+  likersModalName: { color: "#ccc", fontSize: 14, paddingVertical: 6, borderBottomWidth: 1, borderColor: "#1e1e1e" },
+  likersModalEmpty: { color: "#555", fontSize: 14, textAlign: "center" },
+  likersModalClose: { color: "#7B7FE8", fontSize: 14, textAlign: "center", marginTop: 16 },
+  clothingDetailBox: {
+    backgroundColor: "#111", borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36,
+  },
+  clothingIconLarge: { alignSelf: "center", padding: 20, borderRadius: 16, backgroundColor: "#2e2e3a", marginBottom: 4 },
+  clothingDetailName: { color: "#fff", fontSize: 20, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  clothingDetailRows: { gap: 0 },
+  clothingDetailRow: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    paddingVertical: 12, borderBottomWidth: 1, borderColor: "#1e1e1e",
+  },
+  clothingDetailLabel: { color: "#555", fontSize: 14 },
+  clothingDetailValue: { color: "#ddd", fontSize: 14, fontWeight: "500" },
+  usernameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  streakBadge: { backgroundColor: "#1a0f00", borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: "#ff6b0055" },
+  streakBadgeText: { color: "#ff6b00", fontSize: 11, fontWeight: "600" },
 });

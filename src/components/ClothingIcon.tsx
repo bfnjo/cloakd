@@ -459,6 +459,23 @@ function ScarfIcon({ fill, dark }: { fill: string; dark: string }) {
   );
 }
 
+function RingIcon({ fill, dark, light }: { fill: string; dark: string; light: string }) {
+  return (
+    <>
+      {/* Ring band with transparent hole using evenodd */}
+      <Path
+        d="M 16,52 A 34,30 0 0,1 84,52 A 34,30 0 0,1 16,52 Z M 29,52 A 21,18 0 0,0 71,52 A 21,18 0 0,0 29,52 Z"
+        fill={fill}
+        fillRule="evenodd"
+      />
+      {/* Top face highlight */}
+      <Path d="M 16,42 Q 33,22 50,20 Q 67,22 84,42" stroke={light} strokeWidth="2.5" fill="none" opacity={0.6} strokeLinecap="round" />
+      {/* Bottom shadow */}
+      <Path d="M 18,62 Q 34,82 50,84 Q 66,82 82,62" stroke={dark} strokeWidth="2" fill="none" opacity={0.4} strokeLinecap="round" />
+    </>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 type Props = {
@@ -487,6 +504,7 @@ function getShapeType(category: string, subcategory: string) {
   if (sub === "watch") return "watch";
   if (sub === "sunglasses") return "sunglasses";
   if (sub === "scarf") return "scarf";
+  if (sub === "ring" || sub === "rings") return "ring";
   if (cat === "tops") return "tshirt";
   if (cat === "bottoms") return "pants";
   if (cat === "outerwear") return "jacket";
@@ -530,6 +548,7 @@ export default function ClothingIcon({ category, subcategory, colour, size = 80 
       {shape === "watch" && <WatchIcon fill={fillProp} dark={dark} light={light} />}
       {shape === "sunglasses" && <SunglassesIcon fill={fillProp} />}
       {shape === "scarf" && <ScarfIcon fill={fillProp} dark={dark} />}
+      {shape === "ring" && <RingIcon fill={fillProp} dark={dark} light={light} />}
     </Svg>
   );
 }
