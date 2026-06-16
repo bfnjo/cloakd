@@ -1,6 +1,5 @@
-import { Tabs, usePathname } from "expo-router";
-import { Text } from "react-native";
-import Svg, { Circle, Path, Rect } from "react-native-svg";
+import { Tabs } from "expo-router";
+import Svg, { Circle, Ellipse, Line, Path, Rect } from "react-native-svg";
 
 function HomeIcon({ color, size }: { color: string; size: number }) {
   return (
@@ -43,6 +42,18 @@ function BuilderIcon({ color, size }: { color: string; size: number }) {
   );
 }
 
+function GlobeIcon({ color, size }: { color: string; size: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx="12" cy="12" r="9" fill="none" stroke={color} strokeWidth="1.8" />
+      <Ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke={color} strokeWidth="1.8" />
+      <Line x1="3" y1="12" x2="21" y2="12" stroke={color} strokeWidth="1.8" />
+      <Path d="M4.5 7C7 8.5 17 8.5 19.5 7" stroke={color} strokeWidth="1.8" fill="none" />
+      <Path d="M4.5 17C7 15.5 17 15.5 19.5 17" stroke={color} strokeWidth="1.8" fill="none" />
+    </Svg>
+  );
+}
+
 function CalendarIcon({ color, size }: { color: string; size: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -57,18 +68,7 @@ function CalendarIcon({ color, size }: { color: string; size: number }) {
   );
 }
 
-function ProfileIcon({ color, size }: { color: string; size: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Circle cx="12" cy="8" r="4" fill={color} />
-      <Path d="M4 20C4 16.7 7.6 14 12 14C16.4 14 20 16.7 20 20Z" fill={color} />
-    </Svg>
-  );
-}
-
 export default function TabsLayout() {
-  const pathname = usePathname();
-  const isProfileSection = ["/profile", "/settings", "/stats", "/badges"].includes(pathname);
   return (
     <Tabs
       screenOptions={{
@@ -111,28 +111,21 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="community"
+        options={{
+          title: "Community",
+          tabBarIcon: ({ color, size }) => <GlobeIcon color={color as string} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="calendar"
         options={{
           title: "Calendar",
           tabBarIcon: ({ color, size }) => <CalendarIcon color={color as string} size={size} />,
         }}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ size }) => (
-            <ProfileIcon color={isProfileSection ? "#7B7FE8" : "#555"} size={size} />
-          ),
-          tabBarLabel: ({color}) => (
-            <Text style={{ fontSize: 11, fontWeight: "600", color: isProfileSection ? "#7B7FE8" : "#555" }}>
-              Profile
-            </Text>
-          ),
-        }}
-      />
       <Tabs.Screen name="stats" options={{ href: null }} />
-      <Tabs.Screen name="community" options={{ href: null }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
       <Tabs.Screen name="badges" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>

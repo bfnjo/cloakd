@@ -804,12 +804,14 @@ export default function Community() {
               <View style={styles.fullscreenIconGrid}>
                 {viewingPost.items.map((item) => (
                   <View key={item.id} style={styles.fullscreenIconCard}>
-                    <ClothingIcon
-                      category={item.category}
-                      subcategory={item.subcategory}
-                      size={80}
-                      colour={item.colour}
-                    />
+                    <View style={styles.fullscreenIconBg}>
+                      <ClothingIcon
+                        category={item.category}
+                        subcategory={item.subcategory}
+                        size={64}
+                        colour={item.colour}
+                      />
+                    </View>
                     <Text style={styles.fullscreenIconName} numberOfLines={2}>{item.name}</Text>
                     <Text style={styles.fullscreenIconColour}>{item.colour}</Text>
                   </View>
@@ -962,6 +964,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 8, gap: 8,
   },
   fullscreenIconItem: { alignItems: "center", gap: 4, width: 90 },
+  fullscreenIconBg: { backgroundColor: "#2e2e3a", borderRadius: 10, padding: 10, alignItems: "center", justifyContent: "center" },
   fullscreenIconName: { color: "#ddd", fontSize: 12, textAlign: "center", fontWeight: "500" },
   fullscreenIconColour: { color: "#666", fontSize: 11, textAlign: "center" },
   fullscreenCaption: { color: "#ccc", fontSize: 20, lineHeight: 24, marginBottom: 20 },
