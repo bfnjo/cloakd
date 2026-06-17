@@ -153,13 +153,28 @@ export default function Community() {
       .select("post_id, user_id, username")
       .in("post_id", postIds);
     if (error) { console.error("fetchLikes error:", error.message); return; }
+
+    // Always resolve current usernames from user_settings so stale denormalized
+    // values in post_likes don't survive a username change.
+    const uniqueUserIds = [...new Set((data || []).map((r: any) => r.user_id as string))];
+    let usernameMap: Record<string, string> = {};
+    if (uniqueUserIds.length > 0) {
+      const { data: settingsData } = await supabase
+        .from("user_settings")
+        .select("firebase_uid, username")
+        .in("firebase_uid", uniqueUserIds);
+      usernameMap = Object.fromEntries(
+        (settingsData || []).map((u: any) => [u.firebase_uid, u.username])
+      );
+    }
+
     const map: Record<string, LikeInfo> = {};
     for (const postId of postIds) {
       const rows = (data || []).filter((r: any) => r.post_id === postId);
       map[postId] = {
         count: rows.length,
         liked: rows.some((r: any) => r.user_id === userId),
-        likers: rows.map((r: any) => r.username),
+        likers: rows.map((r: any) => usernameMap[r.user_id] || r.username),
       };
     }
     setLikesMap(map);

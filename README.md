@@ -128,6 +128,11 @@ Users can save clothing items with basic tags (category, subcategory, colour, ma
 <div style="page-break-after: always;"></div>
 
 ### Outfit Builder
+<p align="center">
+  <img src="./assets/images/cloakd_images/outfit_builder_page.png" alt="Outfit Builder Page" width="200" />
+
+  <img src="./assets/images/cloakd_images/outfit_builder_default.png" alt="Outfit Builder Default Page" width="200" />
+</p>
  
 **[Proposed]**
  
@@ -171,6 +176,9 @@ The calendar has been created and can be navigated by month. Logging an outfit t
 <div style="page-break-after: always;"></div>
  
 ### Share Outfits
+<p align="center">
+  <img src="./assets/images/cloakd_images/community_page.png" alt="Community Page" width="200" />
+</p>
  
 **[Proposed]**
  
@@ -178,9 +186,58 @@ Users can opt in to post outfits to the CLOAKD community feed. Privacy is the de
  
 **[Current Progress]**
  
-A basic share outfits feature has been created. Users can select the outfits that they have logged on specific dates and add pictures or captions if they want to and share it onto the community feed page. Currently, the liking and saving system has not been done yet.
+The community feed is fully functional. Users can select a logged outfit, attach a photo and caption, and share it to the community feed. Each post displays the outfit date, caption, shared photo, and the individual clothing items as tappable chips.
+
+Tapping a clothing chip opens a detail panel showing the item's name, category, subcategory, colour, brand, purchase price, and material — giving other users full context on each piece without exposing private data unnecessarily.
+
+The liking system is complete. Users can like and unlike any post with a single tap. Like counts update immediately with optimistic UI and revert automatically on error. Users can tap the like count to see a list of everyone who has liked the post.
+
+When a user updates their username in Settings, it propagates automatically across all their existing posts and likes in the community feed.
  
 ---
+
+<div style="page-break-after: always;"></div>
+ 
+### Settings Page
+<p align="center">
+  <img src="./assets/images/cloakd_images/settings_page.png" alt="Settings Page" width="200" />
+
+  <img src="./assets/images/cloakd_images/item_card_community.png" alt="Community Page Item Card" width="200" />
+</p>
+
+**[Proposed]**
+ 
+A dedicated settings screen lets users manage their account details and app preferences in one place. Users can set a display username, choose their preferred temperature unit, select their currency, and control the visibility of their profile. Account deletion is available as a permanent action behind a password confirmation step.
+
+**[Current Progress]**
+ 
+The settings page is complete. Users can:
+
+- **Username** — set a display name (minimum 3 characters, unique) that appears on all community posts and likes. Changing the username automatically updates it across all existing posts and likes in real time.
+- **Temperature Unit** — toggle between °C and °F. The selection is persisted and reflected immediately in the home page weather card.
+- **Currency** — select from SGD, USD, EUR, GBP, JPY, AUD, CAD, HKD, MYR, or IDR for cost-per-wear display.
+- **Profile Visibility** — toggle between Public (outfits visible to the community) and Private (outfits visible to the user only).
+- **Delete Account** — permanently deletes the account and all associated wardrobe data after password re-authentication. This action is irreversible.
+
+
+---
+<div style="page-break-after: always;"></div>
+ 
+### Profile Page
+<p align="center">
+  <img src="./assets/images/cloakd_images/profile_page.png" alt="Profile Page" width="200" />
+</p>
+
+**[Proposed]**
+ 
+Each user has a profile page that displays their username, profile photo, email address as well as their badge wall, stats and settings. The profile is accessible from the home page and serves as a personal hub for reviewing personal style history and achievements.
+
+**[Current Progress]**
+ 
+The profile page is accessible from the profile button on the home page header. It is navigable and the user is able to access the stats page, the settings page as well as their badge wall from this page. In addition, the user is able to view their username, email address, profile photo on this page. The user can also log out from this page.
+
+---
+
 
 <div style="page-break-after: always;"></div>
  
@@ -209,8 +266,11 @@ Every day a user logs an outfit, their streak grows. Missing a day resets the co
 
 **[Current Progress]**
 
-A basic streak counter has been implemented when a user logs an outfit in the calendar. The streak counter on the home page is yet to be updated. The badges have not been made nor has the badges page been built.
+The streak system is fully implemented. A streak is activated when a user logs outfits on 2 or more consecutive days. Missing a day resets the streak to 0. The streak counter is live on the home page, showing the current streak count with motivational subtext. Users with no active streak are prompted to log 2 days in a row to start one.
 
+The streak is also visible in the community feed. When a user with an active streak (2+ days) shares an outfit, a fire icon and streak count appear next to their username on the post card, visible to all community members.
+
+The badges page has been scaffolded and is accessible in the app. Badge unlock logic for streak milestones is planned for Milestone 3.
 ---
  
 ### Trending Outfits
@@ -310,15 +370,21 @@ The trending outfits algorithm has not been built yet.
  
 ## Tech Stack
  
-| Layer | Technology used |
+| Layer | Technology |
 | --- | --- |
-| Frontend Design & App Framework | React Native, Expo |
-| Backend Design | Node.js, Express.js |
+
+| App Framework | React Native, Expo |
+| Navigation | Expo Router (file-based tab navigation) |
 | PostgreSQL Database | Supabase |
-| Auth & Push | Firebase |
-| Caching | Upstash Redis |
+| File Storage | Supabase Storage (community post images) |
+| Authentication | Firebase Authentication (email + password) |
 | Weather API | Open-Meteo |
-| Version Control | Git, Github |
+| Location | expo-location |
+| Image Capture | expo-image-picker |
+| Custom Icons | react-native-svg |
+| Version Control | Git, GitHub |
+
+> **Note:** Node.js / Express.js and Upstash Redis are listed as planned backend infrastructure for features such as the trending outfit algorithm and server-side caching. They are not yet integrated into the current client-side build.
 
 ---
 
