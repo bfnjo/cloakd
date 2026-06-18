@@ -178,6 +178,8 @@ The calendar has been created and can be navigated by month. Logging an outfit t
 ### Share Outfits
 <p align="center">
   <img src="./assets/images/cloakd_images/community_page.png" alt="Community Page" width="200" />
+
+  <img src="./assets/images/cloakd_images/item_card_community.png" alt="Community Page Item Card" width="200" />
 </p>
  
 **[Proposed]**
@@ -201,8 +203,6 @@ When a user updates their username in Settings, it propagates automatically acro
 ### Settings Page
 <p align="center">
   <img src="./assets/images/cloakd_images/settings_page.png" alt="Settings Page" width="200" />
-
-  <img src="./assets/images/cloakd_images/item_card_community.png" alt="Community Page Item Card" width="200" />
 </p>
 
 **[Proposed]**
@@ -259,6 +259,11 @@ The cost-per-wear tracker has been fully built. Users can easily see the number 
 <div style="page-break-after: always;"></div>
 
 ### Streak System
+<p align="center">
+  <img src="./assets/images/cloakd_images/home_screen_streak.jpg" alt="Streak panel on home screen" width="200" />
+
+  <img src="./assets/images/cloakd_images/community_page_streak.png" alt="Streak panel on Community Page" width="200" />
+</p>
 
 **[Proposed]**
 
