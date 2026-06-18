@@ -4,31 +4,12 @@
 <h1 align="center">CLOAKD</h1>
 <p align="center"><em>Dress your best.</em></p>
  
-## Milestone 1 Submission
+## Milestone 2 Submission
  
 **Team Name:** CLOAKD
  
 **Proposed Level of Achievement:** Apollo 11
  
----
-
-## Proof of Concept
-<p align="center">
-  <img src="./assets/images/cloakd_images/login_page.jpg" alt="Login Page" width="100" />
-
-  <img src="./assets/images/cloakd_images/signup_page.jpg" alt="Signup Page" width="100" />
-
-  <img src="./assets/images/cloakd_images/home_page.jpg" alt="Home Page" width="100" />
-
-  <img src="./assets/images/cloakd_images/wardrobe_page.jpg" alt="Virtual Wardrobe Page" width="100" />
-
-  <img src="./assets/images/cloakd_images/add_clothing.jpg" alt="Add Clothing Item Pop-Up" width="100" />
-
-  <img src="./assets/images/cloakd_images/calendar_page.jpg" alt="Calendar Page" width="100" />
-
-  <img src="./assets/images/cloakd_images/stats_page.jpg" alt="Stats page with Cost-Per-Wear" width="100" />
-</p>
-
 ---
 
 <div style="page-break-after: always;"></div>
@@ -73,6 +54,39 @@ Ultimately, we envision CLOAKD as the app people reach for every morning, the on
 12. As someone who enjoys tracking personal progress, I want to look back at my outfit history over weeks and months so that I can see how my personal style has evolved.
 
 ---
+
+<div style="page-break-after: always;"></div>
+
+## Proof of Concept
+<p align="center">
+  <img src="./assets/images/cloakd_images/login_page.jpg" alt="Login Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/signup_page.jpg" alt="Signup Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/home_page.jpg" alt="Home Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/wardrobe_page.jpg" alt="Virtual Wardrobe Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/add_clothing.jpg" alt="Add Clothing Item Pop-Up" width="150" />
+
+  <img src="./assets/images/cloakd_images/outfit_builder_page.png" alt="Outfit Builder Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/outfit_builder_default.png" alt="Outfit Builder Default Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/calendar_page.jpg" alt="Calendar Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/community_page.jpg" alt="Community Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/settings_page.png" alt="Settings Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/profile_page.png" alt="Profile Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/stats_page.jpg" alt="Stats page with Cost-Per-Wear" width="150" />
+</p>
+
+---
+
+<div style="page-break-after: always;"></div>
  
 ## Scope of Project
  
@@ -100,7 +114,7 @@ CLOAKD's features are outlined in the following sections, organised by the follo
 
 Each user will be authenticated with their own unique account. Utilising the Firebase SDK Authentication, users can log in via Email and Password. They will be able to create an account if the user does not already have an existing account. Based on the user’s action, the relevant call to the Firebase authentication instance is made. The FirebaseAuthExceptions are handled within a try-catch block and an alert bar is displayed when the user keys in an invalid input. Only upon successful login or account registration will the user be routed to the next page and the account reflected in the Firebase authentication. 
 
-**[Current Progress]**
+**[Current Progress] (Completed)**
 
 Users are able to either log in with their existing account if they have already made one or sign up for a new account with their name, email and password. Upon inputting their log in information, if their account exists and their information is correct, they will be redirected to the home page of their account.
 
@@ -119,7 +133,7 @@ Users are able to either log in with their existing account if they have already
  
 Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. The wardrobe screen displays all items at a glance, filterable by category, colour or occasion in one tap. Items that have not been worn for 30 or more days and new items that have been added but are yet to be worn are surfaced automatically to encourage rediscovery.
  
-**[Current Progress]**
+**[Current Progress] (Completed)**
  
 Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. The wardrobe grid view is functional and displays all saved items. Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery have been implemented as well.
  
@@ -138,19 +152,25 @@ Users can save clothing items with basic tags (category, subcategory, colour, ma
  
 The outfit builder suggests outfit combinations built entirely from clothes the user already owns. The user is presented with a top, bottom, outerwear, footwear and accessories slot. Each slot is independently swappable, meaning the user can keep what they like and shuffle individual pieces. Weather and occasion filters are applied before suggestions load. Finalised outfits can be saved and logged.
  
-**[Current Progress]**
+**[Current Progress] (Completed)**
  
 Basic outfit builder feature has been created. Builder will retrieve real time weather data and ask for the type of occasion (casual, office, formal, outdoor, date night). Users can then select each individual item from their wardrobe if they want to build the outfit themselves or they can click the generate outfit button and the builder will do all the work for them. The outfit builder uses specific colour combinations that go well with each other to build the outfit. Once the user is satisfied with the outfit, they can click log outfit and the outfit will be saved and logged on the calendar as well. 30-day rediscovery and pushing of unworn pieces has not been fully implemented in the builder yet.
 
 ---
+
+<div style="page-break-after: always;"></div>
  
 ### Occasion and Weather Filter
+
+<p align="center">
+  <img src="./assets/images/cloakd_images/outfit_builder_page.png" alt="Outfit Builder Page" width="200" />
+</p>
  
 **[Proposed]**
  
 The filter asks the user where they are going and what they will be doing. It uses real-time weather data from the Open-Meteo API for the user's location and filters the wardrobe to suggest outfits suitable for the conditions and occasion. Supported occasions: casual, office, formal, outdoor, date night.
  
-**[Current Progress]**
+**[Current Progress] (Completed)**
  
 Open-Meteo API integration is complete and returning live weather data for the user's current location. The logic to filter wardrobe items by temperature range and occasion tag has been connected to the outfit builder.
  
@@ -167,7 +187,7 @@ Open-Meteo API integration is complete and returning live weather data for the u
  
 The outfit calendar acts as a personal style diary. Every time a user logs an outfit, it is recorded against the specified date. Users can look back to see exactly what they wore and when. Logging an outfit automatically updates the wear count and cost-per-wear for every item in the outfit. The calendar also surfaces pieces that have not been worn in a while to encourage rediscovery. Users can also edit and delete outfits that have been logged previously.
  
-**[Current Progress]**
+**[Current Progress] (Completed)**
  
 The calendar has been created and can be navigated by month. Logging an outfit to a date is functional and stored in the database. Automatic updating of wear counts on log is complete. Visual indicators for logged days as well as current date are displayed on the calendar grid. Clothing items that have not been worn in a while have not been set to be suggested yet.
  
@@ -177,7 +197,7 @@ The calendar has been created and can be navigated by month. Logging an outfit t
  
 ### Share Outfits
 <p align="center">
-  <img src="./assets/images/cloakd_images/community_page.png" alt="Community Page" width="200" />
+  <img src="./assets/images/cloakd_images/community_page.jpg" alt="Community Page" width="200" />
 </p>
  
 **[Proposed]**
@@ -202,14 +222,14 @@ When a user updates their username in Settings, it propagates automatically acro
 <p align="center">
   <img src="./assets/images/cloakd_images/settings_page.png" alt="Settings Page" width="200" />
 
-  <img src="./assets/images/cloakd_images/item_card_community.png" alt="Community Page Item Card" width="200" />
+  <img src="./assets/images/cloakd_images/community_page_item_card.jpg" alt="Community Page Item Card" width="200" />
 </p>
 
 **[Proposed]**
  
 A dedicated settings screen lets users manage their account details and app preferences in one place. Users can set a display username, choose their preferred temperature unit, select their currency, and control the visibility of their profile. Account deletion is available as a permanent action behind a password confirmation step.
 
-**[Current Progress]**
+**[Current Progress] (Completed)**
  
 The settings page is complete. Users can:
 
@@ -232,7 +252,7 @@ The settings page is complete. Users can:
  
 Each user has a profile page that displays their username, profile photo, email address as well as their badge wall, stats and settings. The profile is accessible from the home page and serves as a personal hub for reviewing personal style history and achievements.
 
-**[Current Progress]**
+**[Current Progress] (Completed)**
  
 The profile page is accessible from the profile button on the home page header. It is navigable and the user is able to access the stats page, the settings page as well as their badge wall from this page. In addition, the user is able to view their username, email address, profile photo on this page. The user can also log out from this page.
 
@@ -250,7 +270,7 @@ The profile page is accessible from the profile button on the home page header. 
  
 When adding clothing items, users input the purchase price. Cost-per-wear is calculated as price divided by the number of wears and updated automatically each time the item is logged as part of an outfit. The wardrobe view surfaces this figure alongside wear count for each item, giving users a clear picture of the value they are getting out of their clothes.
 
-**[Current Progress]**
+**[Current Progress] (Completed)**
  
 The cost-per-wear tracker has been fully built. Users can easily see the number of times they worn each piece of clothing and the cost-per-wear of it in the wardrobe page. Adding a clothing item to an outfit and logging it in the calendar automatically updated the wear count and cost-per-wear of that specific clothing item. There is also a stats page which shows users their best value clothing item (the one with the lowest cost-per-wear) and other statistics like their average cost-per-wear and most worn item.
 
@@ -271,7 +291,10 @@ The streak system is fully implemented. A streak is activated when a user logs o
 The streak is also visible in the community feed. When a user with an active streak (2+ days) shares an outfit, a fire icon and streak count appear next to their username on the post card, visible to all community members.
 
 The badges page has been scaffolded and is accessible in the app. Badge unlock logic for streak milestones is planned for Milestone 3.
+
 ---
+
+<div style="page-break-after: always;"></div>
  
 ### Trending Outfits
  
