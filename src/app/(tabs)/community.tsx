@@ -154,8 +154,7 @@ export default function Community() {
       .in("post_id", postIds);
     if (error) { console.error("fetchLikes error:", error.message); return; }
 
-    // Always resolve current usernames from user_settings so stale denormalized
-    // values in post_likes don't survive a username change.
+
     const uniqueUserIds = [...new Set((data || []).map((r: any) => r.user_id as string))];
     let usernameMap: Record<string, string> = {};
     if (uniqueUserIds.length > 0) {
