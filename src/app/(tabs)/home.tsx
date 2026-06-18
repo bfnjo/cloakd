@@ -1,7 +1,7 @@
 import * as Location from "expo-location";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
@@ -10,7 +10,7 @@ import { supabase } from "../../supabaseConfig";
 type RecentOutfit = {
   id: string;
   date: string;
-  items: { id: string; name: string; category: string; subcategory: string; colour: string }[];
+  items: { id: string; name: string; category: string; subcategory: string; colour: string; image_url?: string | null }[];
 };
 
 export default function Home() {
@@ -20,6 +20,14 @@ export default function Home() {
   const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
   const [streak, setStreak] = useState(0);
 
+
+  useFocusEffect(useCallback(() => {
+    const user = auth.currentUser;
+    if (user) {
+      fetchStreak(user.uid);
+      fetchRecentOutfits(user.uid);
+    }
+  }, []));
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -219,7 +227,10 @@ export default function Home() {
               <View style={styles.outfitItems}>
                 {outfit.items.map(item => (
                   <View key={item.id} style={styles.outfitItem}>
-                    <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={22} />
+                    {item.image_url
+                      ? <Image source={{ uri: item.image_url }} style={styles.outfitItemPhoto} resizeMode="contain" />
+                      : <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={22} />
+                    }
                     <Text style={styles.outfitItemName}>{item.name}</Text>
                   </View>
                 ))}
@@ -395,6 +406,11 @@ const styles = StyleSheet.create({
   },
   outfitItemEmoji: {
     fontSize: 16,
+  },
+  outfitItemPhoto: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
   },
   outfitItemName: {
     fontSize: 12,
