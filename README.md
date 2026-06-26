@@ -204,7 +204,7 @@ The calendar has been created and can be navigated by month. Logging an outfit t
  
 **[Proposed]**
  
-Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default, meaining that a user's wardrobe stays invisible unless they choose to share the outfits they build from it. Shared posts display only garment categories and colours, never purchase prices or private tags. Other users can like and save posts to their inspiration board.
+Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default, meaning that a user's wardrobe stays invisible unless they choose to share the outfits they build from it. Shared posts display only garment categories and colours, never purchase prices or private tags. Other users can like and save posts to their inspiration board.
  
 **[Current Progress]**
  
@@ -335,7 +335,7 @@ The trending outfits algorithm has not been built yet.
 | 1 | 19 - 24 May 2026 | Set up Expo project, Firebase backend and Supabase backend. Integrate Expo with Firebase for user authentication and Supabase for clothing item information. |
 | 1 | 19 - 24 May 2026 | Create log-in and sign-up pages with user email and password for authentication and verification. |
 | 1 | 19 - 24 May 2026 | Create home page as a dashboard that is connected to all other pages and features. |
-| 1 | 24 - 31 May 2026 | Create virtual wardrobe feature with image capture and input of clothing item details such as colour, material, subcategory and purchanse price. Link to Supabase for storage of details. |
+| 1 | 24 - 31 May 2026 | Create virtual wardrobe feature with image capture and input of clothing item details such as colour, material, subcategory and purchase price. Link to Supabase for storage of details. |
 | 1 | 24 - 31 May 2026 | Create outfit calendar feature with ability to log outfits and highlight dates where outfits have been logged. |
 | 1 | 24 - 31 May 2026 | Create Cost-Per-Wear extension to update wear count every time the clothing item is logged in an outfit. Use purchase price / number of wears to calculate. |
 
