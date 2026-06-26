@@ -197,9 +197,9 @@ The calendar has been created and can be navigated by month. Logging an outfit t
  
 ### Share Outfits
 <p align="center">
-  <img src="./assets/images/cloakd_images/community_page.png" alt="Community Page" width="200" />
+  <img src="./assets/images/cloakd_images/community_page.jpg" alt="Community Page" width="200" />
 
-  <img src="./assets/images/cloakd_images/item_card_community.png" alt="Community Page Item Card" width="200" />
+  <img src="./assets/images/cloakd_images/community_page_item_card.jpg" alt="Community Page Item Card" width="200" />
 </p>
  
 **[Proposed]**
@@ -426,15 +426,19 @@ The trending outfits algorithm has not been built yet.
  
 ---
 
+## Project Video
+
+<a href="https://drive.google.com/file/d/19ZwgU1LJ1aS_Iv6AINE2uhheuhCk-wXR/view?usp=drive_link">Project Video</a>
+
+---
+
+<div style="page-break-after: always;"></div>
+
 ## Project Poster
 
 <a href="https://drive.google.com/file/d/1DDuToza_e9mqj4owryR6hV0lA5SqY5g6/view?usp=sharing">Project Poster</a>
 
----
-
-## Project Video
-
-<a href="https://drive.google.com/file/d/19ZwgU1LJ1aS_Iv6AINE2uhheuhCk-wXR/view?usp=drive_link">Project Video</a>
+<img src="./assets/images/cloakd_images/cloakd_poster-1.png" alt="CLOAKD Poster" width = "500">
 
 ---
  
