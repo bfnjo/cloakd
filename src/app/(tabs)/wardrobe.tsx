@@ -308,13 +308,23 @@ export default function Wardrobe() {
     }
   };
 
-  const handleDeleteItem = async (item: ClothingItem) => {
-    const confirmed = window.confirm(`Delete ${item.name}? This cannot be undone.`);
-    if (confirmed) {
-      const { error } = await supabase.from("clothing_items").delete().eq("id", item.id);
-      if (error) Alert.alert("Error", error.message);
-      else fetchItems();
-    }
+  const handleDeleteItem = (item: ClothingItem) => {
+    Alert.alert(
+      "Delete item",
+      `Delete ${item.name}? This cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const { error } = await supabase.from("clothing_items").delete().eq("id", item.id);
+            if (error) Alert.alert("Error", error.message);
+            else fetchItems();
+          },
+        },
+      ]
+    );
   };
 
   const openEditModal = (item: ClothingItem) => {
