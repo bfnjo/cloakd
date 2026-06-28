@@ -21,14 +21,6 @@ export default function Home() {
   const [streak, setStreak] = useState(0);
 
 
-  useFocusEffect(useCallback(() => {
-    const user = auth.currentUser;
-    if (user) {
-      fetchStreak(user.uid);
-      fetchRecentOutfits(user.uid);
-    }
-  }, []));
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -94,6 +86,14 @@ export default function Home() {
     }));
     setRecentOutfits(formatted);
   };
+
+  useFocusEffect(useCallback(() => {
+    const user = auth.currentUser;
+    if (user) {
+      fetchStreak(user.uid);
+      fetchRecentOutfits(user.uid);
+    }
+  }, []));
 
   const fetchWeather = async (unit: "C" | "F" = "C") => {
     const { status } = await Location.requestForegroundPermissionsAsync();
