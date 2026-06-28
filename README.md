@@ -282,9 +282,7 @@ The cost-per-wear tracker has been fully built. Users can easily see the number 
 
 ### Streak System
 <p align="center">
-  <img src="./assets/images/cloakd_images/home_screen_streak.jpg" alt="Streak panel on home screen" width="200" />
-
-  <img src="./assets/images/cloakd_images/community_page_streak.png" alt="Streak panel on Community Page" width="200" />
+  <img src="./assets/images/cloakd_images/home_screen_streak.png" alt="Streak panel on home screen" width="200" />
 </p>
 
 **[Proposed]**
@@ -330,65 +328,69 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 #### User Authentication
 | Test | Expected Result | Status |
 | --- | --- | --- |
-| Sign up with a new email and password | Account created, redirected to home page | ✅ Pass |
-| Log in with valid credentials | Redirected to home page | ✅ Pass |
-| Log in with incorrect password | Error alert displayed, no redirect | ✅ Pass |
-| Log in with unregistered email | Error alert displayed | ✅ Pass |
-| Delete account with correct password | Account and data removed, redirected to login | ✅ Pass |
-| Delete account with wrong password | Error alert, account retained | ✅ Pass |
+| Sign up with a new email and password | Account created, redirected to home page | Pass |
+| Log in with valid credentials | Redirected to home page | Pass |
+| Log in with incorrect password | Error alert displayed, no redirect | Pass |
+| Log in with unregistered email | Error alert displayed | Pass |
+| Delete account with correct password | Account and data removed, redirected to login | Pass |
+| Delete account with wrong password | Error alert, account retained | Pass |
 
 #### Virtual Wardrobe
 | Test | Expected Result | Status |
 | --- | --- | --- |
-| Add a clothing item with all fields | Item saved and visible in wardrobe grid | ✅ Pass |
-| Add a clothing item with photo | Photo displayed in wardrobe grid and builder | ✅ Pass |
-| Edit an existing clothing item | Updated details reflected immediately | ✅ Pass |
-| Delete a clothing item | Item removed from wardrobe and any logged outfits | ✅ Pass |
-| Filter wardrobe by category | Only matching items shown | ✅ Pass |
+| Add a clothing item with all fields | Item saved and visible in wardrobe grid | Pass |
+| Add a clothing item with photo | Photo displayed in wardrobe grid and builder | Pass |
+| Edit an existing clothing item | Updated details reflected immediately | Pass |
+| Delete a clothing item | Item removed from wardrobe and any logged outfits | Pass |
+| Filter wardrobe by category | Only matching items shown | Pass |
+
+<div style="page-break-after: always;"></div>
 
 #### Outfit Builder
 | Test | Expected Result | Status |
 | --- | --- | --- |
-| Generate an outfit | Items selected from wardrobe matching weather and occasion | ✅ Pass |
-| Manually swap a slot | Selected item replaces the slot | ✅ Pass |
-| Log a generated outfit | Outfit saved to calendar on the selected date | ✅ Pass |
-| Generate outfit with empty wardrobe | Prompt shown with no crash | ✅ Pass |
+| Generate an outfit | Items selected from wardrobe matching weather and occasion | Pass |
+| Manually swap a slot | Selected item replaces the slot | Pass |
+| Log a generated outfit | Outfit saved to calendar on the selected date | Pass |
+| Generate outfit with empty wardrobe | Prompt shown with no crash | Pass |
 
 #### Outfit Calendar
 | Test | Expected Result | Status |
 | --- | --- | --- |
-| Log an outfit to a date | Date highlighted on calendar, wear counts updated | ✅ Pass |
-| View a logged outfit | Items displayed correctly for that date | ✅ Pass |
-| Navigate between months | Calendar updates without data loss | ✅ Pass |
+| Log an outfit to a date | Date highlighted on calendar, wear counts updated | Pass |
+| View a logged outfit | Items displayed correctly for that date | Pass |
+| Navigate between months | Calendar updates without data loss | Pass |
 
 #### Streak System
 | Test | Expected Result | Status |
 | --- | --- | --- |
-| Log outfits on 2 consecutive days | Streak of 2 shown on home page | ✅ Pass |
-| Skip a day after an active streak | Streak resets to 0 | ✅ Pass |
-| Streak badge on community post | Fire icon and count appear beside username | ✅ Pass |
-| Streak refreshes on home tab focus | Updated count shown after returning from calendar | ✅ Pass |
+| Log outfits on 2 consecutive days | Streak of 2 shown on home page | Pass |
+| Skip a day after an active streak | Streak resets to 0 | Pass |
+| Streak badge on community post | Fire icon and count appear beside username | Pass |
+| Streak refreshes on home tab focus | Updated count shown after returning from calendar | Pass |
+
+<div style="page-break-after: always;"></div>
 
 #### Community Feed
 | Test | Expected Result | Status |
 | --- | --- | --- |
-| Share an outfit post | Post appears at top of community feed | ✅ Pass |
-| Share a post with photo | Photo displayed in post card | ✅ Pass |
-| Like a post | Like count increments immediately | ✅ Pass |
-| Unlike a post | Like count decrements immediately | ✅ Pass |
-| Like reverts on network error | Count restored to pre-tap state | ✅ Pass |
-| View likers list | All usernames who liked the post are shown | ✅ Pass |
-| Tap clothing chip | Item detail modal opens with correct data | ✅ Pass |
-| Edit own post | Caption and photo updated in feed | ✅ Pass |
-| Delete own post | Post removed from feed | ✅ Pass |
+| Share an outfit post | Post appears at top of community feed | Pass |
+| Share a post with photo | Photo displayed in post card | Pass |
+| Like a post | Like count increments immediately | Pass |
+| Unlike a post | Like count decrements immediately | Pass |
+| Like reverts on network error | Count restored to pre-tap state | Pass |
+| View likers list | All usernames who liked the post are shown | Pass |
+| Tap clothing chip | Item detail modal opens with correct data | Pass |
+| Edit own post | Caption and photo updated in feed | Pass |
+| Delete own post | Post removed from feed | Pass |
 
 #### Settings
 | Test | Expected Result | Status |
 | --- | --- | --- |
-| Change username | New username reflected on all existing posts and likes | ✅ Pass |
-| Switch temperature unit to °F | Home page weather updates to Fahrenheit | ✅ Pass |
-| Change currency | Currency setting persisted on next app open | ✅ Pass |
-| Set profile to private | Posts hidden from community feed | ✅ Pass |
+| Change username | New username reflected on all existing posts and likes | Pass |
+| Switch temperature unit to °F | Home page weather updates to Fahrenheit | Pass |
+| Change currency | Currency setting persisted on next app open | Pass |
+| Set profile to private | Posts hidden from community feed | Pass |
 
 ---
 
@@ -398,7 +400,7 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 | --- | --- | --- |
 | iPhone 17 (Simulator) | iOS 18 | Xcode iOS Simulator |
 
-> **Note:** Testing was conducted on a simulated iPhone 17 via Xcode rather than a physical device. This is because the version of Expo Go available on physical devices had not been updated to support the SDK version used in this project. A custom development build is required to run the app on a physical device.
+> Testing was conducted on a simulated iPhone 17 via Xcode rather than a physical device. This is because the version of Expo Go available on physical devices had not been updated to support the SDK version used in this project.
 
 ---
 
