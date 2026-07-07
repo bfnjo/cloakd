@@ -38,10 +38,14 @@ type CommunityPost = {
   username: string;
   caption: string;
   photo_url: string | null;
-  outfit_date: string;
+  outfit_date: string | null;
   created_at: string;
   streak: number;
   items: ClothingItem[];
+  post_type?: string;
+  badge_id?: string | null;
+  badge_title?: string | null;
+  badge_emoji?: string | null;
 };
 
 type LikeInfo = {
@@ -131,6 +135,10 @@ export default function Community() {
 
     const enriched: CommunityPost[] = [];
     for (const post of data || []) {
+      if (post.post_type === "badge" || !post.outfit_log_id) {
+        enriched.push({ ...post, items: [] });
+        continue;
+      }
       const { data: logItems } = await supabase
         .from("outfit_log_items")
         .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory, brand, price, material)")
@@ -184,7 +192,6 @@ export default function Community() {
     if (!user) return;
     const current = likesMap[postId] ?? { count: 0, liked: false, likers: [] };
     if (current.liked) {
-      // Optimistic update
       setLikesMap((prev) => ({
         ...prev,
         [postId]: { count: Math.max(0, current.count - 1), liked: false, likers: current.likers.slice(0, -1) },
@@ -192,7 +199,6 @@ export default function Community() {
       const { error } = await supabase.from("post_likes").delete().eq("post_id", postId).eq("user_id", user.uid);
       if (error) {
         console.error("unlike error:", error.message);
-        // Revert
         setLikesMap((prev) => ({ ...prev, [postId]: current }));
       }
     } else {
@@ -202,7 +208,6 @@ export default function Community() {
         .eq("firebase_uid", user.uid)
         .single();
       const username = settings?.username || "Anonymous";
-      // Optimistic update
       setLikesMap((prev) => ({
         ...prev,
         [postId]: { count: current.count + 1, liked: true, likers: [...current.likers, username] },
@@ -210,7 +215,6 @@ export default function Community() {
       const { error } = await supabase.from("post_likes").insert({ post_id: postId, user_id: user.uid, username });
       if (error) {
         console.error("like error:", error.message);
-        // Revert
         setLikesMap((prev) => ({ ...prev, [postId]: current }));
       }
     }
@@ -510,9 +514,11 @@ export default function Community() {
                 </View>
                 {post.user_id === currentUserId && (
                   <View style={styles.postActions}>
-                    <TouchableOpacity onPress={() => openEditModal(post)} style={styles.actionBtn}>
-                      <Text style={styles.actionBtnText}>Edit</Text>
-                    </TouchableOpacity>
+                    {post.post_type !== "badge" && (
+                      <TouchableOpacity onPress={() => openEditModal(post)} style={styles.actionBtn}>
+                        <Text style={styles.actionBtnText}>Edit</Text>
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity onPress={() => handleDelete(post.id)} style={[styles.actionBtn, styles.actionBtnDelete]}>
                       <Text style={styles.actionBtnDeleteText}>Delete</Text>
                     </TouchableOpacity>
@@ -520,11 +526,19 @@ export default function Community() {
                 )}
               </View>
 
-              {post.photo_url ? (
-                <DynamicImage uri={post.photo_url} />
-              ) : null}
-
-              {renderItemChips(post.items)}
+              {post.post_type === "badge" ? (
+                <View style={styles.badgeShareCard}>
+                  <Text style={styles.badgeShareEmoji}>{post.badge_emoji}</Text>
+                  <Text style={styles.badgeShareTitle}>{post.badge_title}</Text>
+                </View>
+              ) : (
+                <>
+                  {post.photo_url ? (
+                    <DynamicImage uri={post.photo_url} />
+                  ) : null}
+                  {renderItemChips(post.items)}
+                </>
+              )}
               {post.caption ? <Text style={styles.caption}>{post.caption}</Text> : null}
               <View style={styles.likeRow}>
                 <TouchableOpacity
@@ -662,7 +676,7 @@ export default function Community() {
             <ScrollView showsVerticalScrollIndicator={false}>
               {editingPost && (
                 <View style={styles.selectedOutfit}>
-                  <Text style={styles.selectedDate}>📅 {formatDate(editingPost.outfit_date)}</Text>
+                  <Text style={styles.selectedDate}>📅 {formatDate(editingPost.outfit_date!)}</Text>
                   <View style={styles.selectedItems}>
                     {editingPost.items.map((item) => (
                       <View key={item.id} style={styles.selectedItemChip}>
@@ -815,30 +829,39 @@ export default function Community() {
                 )}
               </View>
 
-              <View style={styles.fullscreenIconGrid}>
-                {viewingPost.items.map((item) => (
-                  <View key={item.id} style={styles.fullscreenIconCard}>
-                    <View style={styles.fullscreenIconBg}>
-                      <ClothingIcon
-                        category={item.category}
-                        subcategory={item.subcategory}
-                        size={64}
-                        colour={item.colour}
-                      />
-                    </View>
-                    <Text style={styles.fullscreenIconName} numberOfLines={2}>{item.name}</Text>
-                    <Text style={styles.fullscreenIconColour}>{item.colour}</Text>
+              {viewingPost.post_type === "badge" ? (
+                <View style={styles.fullscreenBadgeCard}>
+                  <Text style={styles.fullscreenBadgeEmoji}>{viewingPost.badge_emoji}</Text>
+                  <Text style={styles.fullscreenBadgeTitle}>{viewingPost.badge_title}</Text>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.fullscreenIconGrid}>
+                    {viewingPost.items.map((item) => (
+                      <View key={item.id} style={styles.fullscreenIconCard}>
+                        <View style={styles.fullscreenIconBg}>
+                          <ClothingIcon
+                            category={item.category}
+                            subcategory={item.subcategory}
+                            size={64}
+                            colour={item.colour}
+                          />
+                        </View>
+                        <Text style={styles.fullscreenIconName} numberOfLines={2}>{item.name}</Text>
+                        <Text style={styles.fullscreenIconColour}>{item.colour}</Text>
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
 
-              {viewingPost.photo_url ? (
-                <Image
-                  source={{ uri: viewingPost.photo_url }}
-                  style={styles.fullscreenPhoto}
-                  resizeMode="contain"
-                />
-              ) : null}
+                  {viewingPost.photo_url ? (
+                    <Image
+                      source={{ uri: viewingPost.photo_url }}
+                      style={styles.fullscreenPhoto}
+                      resizeMode="contain"
+                    />
+                  ) : null}
+                </>
+              )}
             </ScrollView>
           )}
         </View>
@@ -1013,4 +1036,16 @@ const styles = StyleSheet.create({
   usernameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   streakBadge: { backgroundColor: "#1a0f00", borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: "#ff6b0055" },
   streakBadgeText: { color: "#ff6b00", fontSize: 11, fontWeight: "600" },
+  badgeShareCard: {
+    backgroundColor: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 8,
+    alignItems: "center", borderWidth: 1, borderColor: "#7B7FE855",
+  },
+  badgeShareEmoji: { fontSize: 40, marginBottom: 8 },
+  badgeShareTitle: { color: "#7B7FE8", fontSize: 16, fontWeight: "bold", textAlign: "center" },
+  fullscreenBadgeCard: {
+    backgroundColor: "#1a1a2e", borderRadius: 16, padding: 32, marginBottom: 20,
+    alignItems: "center", borderWidth: 1, borderColor: "#7B7FE855",
+  },
+  fullscreenBadgeEmoji: { fontSize: 64, marginBottom: 12 },
+  fullscreenBadgeTitle: { color: "#7B7FE8", fontSize: 20, fontWeight: "bold", textAlign: "center" },
 });
