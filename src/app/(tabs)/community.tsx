@@ -14,6 +14,7 @@ import {
 import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
+import { BADGE_IMAGES } from "../../utils/badgeImages";
 
 type ClothingItem = {
   id: string;
@@ -557,7 +558,9 @@ export default function Community() {
 
               {post.post_type === "badge" ? (
                 <View style={styles.badgeShareCard}>
-                  <Text style={styles.badgeShareEmoji}>{post.badge_emoji}</Text>
+                  {post.badge_id && (
+                    <Image source={BADGE_IMAGES[post.badge_id]} style={styles.badgeShareImage} />
+                  )}
                   <Text style={styles.badgeShareTitle}>{post.badge_title}</Text>
                 </View>
               ) : (
@@ -864,7 +867,10 @@ export default function Community() {
                   onPress={() => setBadgeDetailPost(viewingPost)}
                   activeOpacity={0.75}
                 >
-                  <Text style={styles.fullscreenBadgeEmoji}>{viewingPost.badge_emoji}</Text>
+                  {viewingPost.badge_id && BADGE_IMAGES[viewingPost.badge_id]
+                    ? <Image source={BADGE_IMAGES[viewingPost.badge_id]} style={styles.fullscreenBadgeImage} />
+                    : <Text style={styles.fullscreenBadgeEmoji}>{viewingPost.badge_emoji}</Text>
+                  }
                   <Text style={styles.fullscreenBadgeTitle}>{viewingPost.badge_title}</Text>
                   <Text style={styles.fullscreenBadgeTap}>Tap to learn more</Text>
                 </TouchableOpacity>
@@ -1109,6 +1115,8 @@ const styles = StyleSheet.create({
   fullscreenBadgeEmoji: { fontSize: 64, marginBottom: 12 },
   fullscreenBadgeTitle: { color: "#7B7FE8", fontSize: 20, fontWeight: "bold", textAlign: "center" },
   fullscreenBadgeTap: { color: "#555", fontSize: 12, marginTop: 8 },
+  fullscreenBadgeImage: { width: 96, height: 96, marginBottom: 12 },
+  badgeShareImage: { width: 56, height: 56, marginBottom: 8 },
   badgeDetailOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", alignItems: "center", paddingHorizontal: 32 },
   badgeDetailBox: { backgroundColor: "#18182e", borderRadius: 24, padding: 32, width: "100%", alignItems: "center", borderWidth: 1, borderColor: "#7B7FE888" },
   badgeDetailEmoji: { fontSize: 56, marginBottom: 12 },
