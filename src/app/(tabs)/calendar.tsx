@@ -44,18 +44,12 @@ export default function Calendar() {
   }, [date]);
 
   const ItemThumb = ({ item, size = 36 }: { item: ClothingItem; size?: number }) => {
-    if (item.image_url) {
-      return (
-        <Image
-          source={{ uri: item.image_url }}
-          style={{ width: size, height: size, borderRadius: 6, marginRight: 12 }}
-          contentFit="contain"
-        />
-      );
-    }
     return (
-      <View style={{ width: size, height: size, marginRight: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#2e2e3a", borderRadius: 6 }}>
-        <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={size} />
+      <View style={{ width: size, height: size, marginRight: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#2e2e3a", borderRadius: 6, overflow: "hidden" }}>
+        {item.image_url
+          ? <Image source={{ uri: item.image_url }} style={{ width: size, height: size }} contentFit="contain" />
+          : <ClothingIcon category={item.category} subcategory={item.subcategory || ""} colour={item.colour} size={size} />
+        }
       </View>
     );
   };

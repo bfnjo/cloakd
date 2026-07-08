@@ -11,6 +11,7 @@ type ClothingItem = {
   id: string;
   price: number;
   wear_count: number;
+  created_at: string;
 };
 
 type Badge = {
@@ -27,6 +28,13 @@ export default function BadgeWall() {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [outfitCount, setOutfitCount] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
+  const [maxPostLikes, setMaxPostLikes] = useState(0);
+  const [weekColourCount, setWeekColourCount] = useState(0);
+  const [weekBrandCount, setWeekBrandCount] = useState(0);
+  const [hasVintageLover, setHasVintageLover] = useState(false);
+  const [firstOutfitPostCount, setFirstOutfitPostCount] = useState(0);
+  const [hasFanFavourite, setHasFanFavourite] = useState(false);
+  const [hasEarlyAdopter, setHasEarlyAdopter] = useState(false);
   const [earnedIds, setEarnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -62,9 +70,9 @@ export default function BadgeWall() {
 
     const { data: wardrobeData } = await supabase
       .from("clothing_items")
-      .select("id, price, wear_count")
+      .select("id, price, wear_count, created_at")
       .eq("user_id", user.uid);
-    const currentItems = wardrobeData || [];
+    const currentItems: ClothingItem[] = (wardrobeData || []) as ClothingItem[];
     setItems(currentItems);
 
     const { data: logsData } = await supabase
@@ -78,6 +86,75 @@ export default function BadgeWall() {
     setOutfitCount(currentOutfitCount);
     setLongestStreak(currentStreak);
 
+    // Early Adopter: logged an outfit within first week of joining
+    const joinDate = new Date(user.metadata.creationTime);
+    const joinPlusWeek = new Date(joinDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const currentHasEarlyAdopter = dates.some((d: string) => new Date(d + "T00:00:00") <= joinPlusWeek);
+    setHasEarlyAdopter(currentHasEarlyAdopter);
+
+    // Rainbow Dresser + Brand Hopper: unique colours/brands logged in last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
+    const { data: recentLogs } = await supabase
+      .from("outfit_logs")
+      .select("outfit_log_items(clothing_items(colour, brand))")
+      .eq("user_id", user.uid)
+      .gte("date", sevenDaysAgoStr);
+    const recentColours = new Set<string>();
+    const recentBrands = new Set<string>();
+    (recentLogs || []).forEach((log: any) => {
+      (log.outfit_log_items || []).forEach((oli: any) => {
+        if (oli.clothing_items?.colour) recentColours.add(oli.clothing_items.colour.toLowerCase().trim());
+        if (oli.clothing_items?.brand?.trim()) recentBrands.add(oli.clothing_items.brand.toLowerCase().trim());
+      });
+    });
+    setWeekColourCount(recentColours.size);
+    setWeekBrandCount(recentBrands.size);
+
+    // Vintage Lover: logged an item that's been in wardrobe 1+ year
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oldItemIds = currentItems
+      .filter((i) => new Date(i.created_at) < oneYearAgo)
+      .map((i) => i.id);
+    let currentHasVintageLover = false;
+    if (oldItemIds.length > 0) {
+      const { data: vintageLog } = await supabase
+        .from("outfit_log_items")
+        .select("clothing_item_id")
+        .in("clothing_item_id", oldItemIds)
+        .limit(1);
+      currentHasVintageLover = (vintageLog?.length ?? 0) > 0;
+    }
+    setHasVintageLover(currentHasVintageLover);
+
+    const { data: outfitPosts } = await supabase
+      .from("community_posts")
+      .select("id")
+      .eq("user_id", user.uid)
+      .not("outfit_log_id", "is", null);
+    setFirstOutfitPostCount(outfitPosts?.length ?? 0);
+    let currentMaxLikes = 0;
+    let currentHasFanFavourite = false;
+    if (outfitPosts && outfitPosts.length > 0) {
+      const postIds = outfitPosts.map((p: { id: string }) => p.id);
+      const { data: likesData } = await supabase
+        .from("post_likes")
+        .select("post_id, user_id")
+        .in("post_id", postIds);
+      const likesByPost: Record<string, number> = {};
+      const likesByLiker: Record<string, number> = {};
+      (likesData || []).forEach((l: { post_id: string; user_id: string }) => {
+        likesByPost[l.post_id] = (likesByPost[l.post_id] || 0) + 1;
+        likesByLiker[l.user_id] = (likesByLiker[l.user_id] || 0) + 1;
+      });
+      currentMaxLikes = Object.values(likesByPost).length > 0 ? Math.max(...Object.values(likesByPost)) : 0;
+      currentHasFanFavourite = Object.values(likesByLiker).some((count) => count >= 5);
+    }
+    setMaxPostLikes(currentMaxLikes);
+    setHasFanFavourite(currentHasFanFavourite);
+
     const { data: badgeRows } = await supabase
       .from("user_badges")
       .select("badge_id")
@@ -87,9 +164,12 @@ export default function BadgeWall() {
     const wornItems = currentItems.filter((i) => i.wear_count > 0 && i.price > 0);
     const itemCPWs = wornItems.map((i) => i.price / i.wear_count);
     const bestCPW = itemCPWs.length > 0 ? Math.min(...itemCPWs) : null;
+    const maxWearCount = currentItems.length > 0 ? Math.max(...currentItems.map((i) => i.wear_count)) : 0;
+    const currentHasInvestmentPiece = currentItems.some((i) => i.price >= 200);
 
     const conditions: { id: string; met: boolean }[] = [
       { id: "signup", met: true },
+      { id: "early-adopter", met: currentHasEarlyAdopter },
       { id: "streak-7", met: currentStreak >= 7 },
       { id: "streak-30", met: currentStreak >= 30 },
       { id: "streak-100", met: currentStreak >= 100 },
@@ -101,6 +181,18 @@ export default function BadgeWall() {
       { id: "outfits-1", met: currentOutfitCount >= 1 },
       { id: "outfits-10", met: currentOutfitCount >= 10 },
       { id: "outfits-100", met: currentOutfitCount >= 100 },
+      { id: "likes-10", met: currentMaxLikes >= 10 },
+      { id: "likes-40", met: currentMaxLikes >= 40 },
+      { id: "likes-100", met: currentMaxLikes >= 100 },
+      { id: "rainbow-dresser", met: recentColours.size >= 5 },
+      { id: "brand-hopper", met: recentBrands.size >= 5 },
+      { id: "old-faithful", met: maxWearCount >= 10 },
+      { id: "wardrobe-warrior", met: maxWearCount >= 50 },
+      { id: "vintage-lover", met: currentHasVintageLover },
+      { id: "first-post", met: (outfitPosts?.length ?? 0) >= 1 },
+      { id: "conversation-starter", met: currentMaxLikes >= 3 },
+      { id: "fan-favourite", met: currentHasFanFavourite },
+      { id: "investment-piece", met: currentHasInvestmentPiece },
     ];
 
     const newlyEarned = conditions.filter((c) => c.met && !earnedSet.has(c.id));
@@ -122,6 +214,8 @@ export default function BadgeWall() {
   const wornItems = items.filter((i) => i.wear_count > 0 && i.price > 0);
   const itemCPWs = wornItems.map((i) => i.price / i.wear_count);
   const bestCPW = itemCPWs.length > 0 ? Math.min(...itemCPWs) : null;
+  const maxWearCount = items.length > 0 ? Math.max(...items.map((i) => i.wear_count)) : 0;
+  const hasInvestmentPiece = items.some((i) => i.price >= 200);
 
   const clamp = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -144,6 +238,10 @@ export default function BadgeWall() {
       title: "Getting Started",
       badges: [
         buildBadge("signup", "🎉", "Welcome to Cloakd", "Create your account", 1, "Unlocked"),
+        buildBadge("early-adopter", "⚡", "Early Adopter", "Log an outfit within your first week",
+          hasEarlyAdopter ? 1 : 0, hasEarlyAdopter ? "Unlocked" : "Log an outfit this week"),
+        buildBadge("first-post", "📣", "First Post", "Share your first outfit to the community",
+          clamp(firstOutfitPostCount), `${Math.min(firstOutfitPostCount, 1)}/1 post`),
       ],
     },
     {
@@ -188,6 +286,48 @@ export default function BadgeWall() {
           clamp(outfitCount / 10), `${Math.min(outfitCount, 10)}/10 outfits`),
         buildBadge("outfits-100", "🗓️", "Century Club", "Log 100 outfits",
           clamp(outfitCount / 100), `${Math.min(outfitCount, 100)}/100 outfits`),
+      ],
+    },
+    {
+      title: "Community",
+      badges: [
+        buildBadge("conversation-starter", "💬", "Conversation Starter", "Get 3 likes on a post with a logged outfit",
+          clamp(maxPostLikes / 3), `${Math.min(maxPostLikes, 3)}/3 likes`),
+        buildBadge("likes-10", "🌟", "Getting There", "Get 10 likes on a post with a logged outfit",
+          clamp(maxPostLikes / 10), `${Math.min(maxPostLikes, 10)}/10 likes`),
+        buildBadge("likes-40", "✨", "Fashionista", "Get 40 likes on a post with a logged outfit",
+          clamp(maxPostLikes / 40), `${Math.min(maxPostLikes, 40)}/40 likes`),
+        buildBadge("likes-100", "🖼️", "Pinterest Wall", "Get 100 likes on a post with a logged outfit",
+          clamp(maxPostLikes / 100), `${Math.min(maxPostLikes, 100)}/100 likes`),
+        buildBadge("fan-favourite", "🫶", "Fan Favourite", "Have the same person like 5 of your posts",
+          hasFanFavourite ? 1 : 0, hasFanFavourite ? "Unlocked" : "Keep posting!"),
+      ],
+    },
+    {
+      title: "Style Diversity",
+      badges: [
+        buildBadge("rainbow-dresser", "🌈", "Rainbow Dresser", "Wear 5 different colours in one week",
+          clamp(weekColourCount / 5), `${Math.min(weekColourCount, 5)}/5 colours`),
+        buildBadge("brand-hopper", "🛍️", "Brand Hopper", "Wear 5 different brands in one week",
+          clamp(weekBrandCount / 5), `${Math.min(weekBrandCount, 5)}/5 brands`),
+      ],
+    },
+    {
+      title: "Outfit Recycler",
+      badges: [
+        buildBadge("old-faithful", "♻️", "Old Faithful", "Wear the same item 10 times",
+          clamp(maxWearCount / 10), `${Math.min(maxWearCount, 10)}/10 wears`),
+        buildBadge("wardrobe-warrior", "⚔️", "Wardrobe Warrior", "Wear the same item 50 times",
+          clamp(maxWearCount / 50), `${Math.min(maxWearCount, 50)}/50 wears`),
+        buildBadge("vintage-lover", "🕰️", "Vintage Lover", "Log an item that's been in your wardrobe for 1+ year",
+          hasVintageLover ? 1 : 0, hasVintageLover ? "Unlocked" : "Keep wearing old favourites"),
+      ],
+    },
+    {
+      title: "Wardrobe Health",
+      badges: [
+        buildBadge("investment-piece", "💼", "Investment Piece", "Add an item worth over $200",
+          hasInvestmentPiece ? 1 : 0, hasInvestmentPiece ? "Unlocked" : "Add a luxury item"),
       ],
     },
   ];

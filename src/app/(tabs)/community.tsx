@@ -68,6 +68,34 @@ function DynamicImage({ uri }: { uri: string }) {
   );
 }
 
+const BADGE_DESCRIPTIONS: Record<string, { description: string; category: string }> = {
+  "signup":      { description: "Create your account", category: "Welcome" },
+  "streak-7":    { description: "Log outfits 7 days in a row", category: "Streaks" },
+  "streak-30":   { description: "Log outfits 30 days in a row", category: "Streaks" },
+  "streak-100":  { description: "Log outfits 100 days in a row", category: "Streaks" },
+  "cpw-5":       { description: "Get one item's cost-per-wear under $5", category: "Smart Spending" },
+  "cpw-1":       { description: "Get one item's cost-per-wear under $1", category: "Smart Spending" },
+  "items-10":    { description: "Add 10 items to your wardrobe", category: "Wardrobe" },
+  "items-25":    { description: "Add 25 items to your wardrobe", category: "Wardrobe" },
+  "items-50":    { description: "Add 50 items to your wardrobe", category: "Wardrobe" },
+  "outfits-1":   { description: "Log your first outfit", category: "Outfits" },
+  "outfits-10":  { description: "Log 10 outfits", category: "Outfits" },
+  "outfits-100": { description: "Log 100 outfits", category: "Outfits" },
+  "likes-10":            { description: "Get 10 likes on a post with a logged outfit", category: "Community" },
+  "likes-40":            { description: "Get 40 likes on a post with a logged outfit", category: "Community" },
+  "likes-100":           { description: "Get 100 likes on a post with a logged outfit", category: "Community" },
+  "early-adopter":       { description: "Log an outfit within your first week of joining", category: "Getting Started" },
+  "first-post":          { description: "Share your first outfit to the community", category: "Getting Started" },
+  "conversation-starter":{ description: "Get 3 likes on a post with a logged outfit", category: "Community" },
+  "fan-favourite":       { description: "Have the same person like 5 of your posts", category: "Community" },
+  "rainbow-dresser":     { description: "Wear 5 different colours in one week", category: "Style Diversity" },
+  "brand-hopper":        { description: "Wear 5 different brands in one week", category: "Style Diversity" },
+  "old-faithful":        { description: "Wear the same item 10 times", category: "Outfit Recycler" },
+  "wardrobe-warrior":    { description: "Wear the same item 50 times", category: "Outfit Recycler" },
+  "vintage-lover":       { description: "Log an item that's been in your wardrobe for 1+ year", category: "Outfit Recycler" },
+  "investment-piece":    { description: "Add an item worth over $200", category: "Wardrobe Health" },
+};
+
 export default function Community() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
@@ -76,6 +104,7 @@ export default function Community() {
   const [likesMap, setLikesMap] = useState<Record<string, LikeInfo>>({});
   const [likersModalPost, setLikersModalPost] = useState<CommunityPost | null>(null);
   const [selectedClothingItem, setSelectedClothingItem] = useState<ClothingItem | null>(null);
+  const [badgeDetailPost, setBadgeDetailPost] = useState<CommunityPost | null>(null);
 
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -830,10 +859,15 @@ export default function Community() {
               </View>
 
               {viewingPost.post_type === "badge" ? (
-                <View style={styles.fullscreenBadgeCard}>
+                <TouchableOpacity
+                  style={styles.fullscreenBadgeCard}
+                  onPress={() => setBadgeDetailPost(viewingPost)}
+                  activeOpacity={0.75}
+                >
                   <Text style={styles.fullscreenBadgeEmoji}>{viewingPost.badge_emoji}</Text>
                   <Text style={styles.fullscreenBadgeTitle}>{viewingPost.badge_title}</Text>
-                </View>
+                  <Text style={styles.fullscreenBadgeTap}>Tap to learn more</Text>
+                </TouchableOpacity>
               ) : (
                 <>
                   <View style={styles.fullscreenIconGrid}>
@@ -863,6 +897,32 @@ export default function Community() {
                 </>
               )}
             </ScrollView>
+          )}
+
+          {/* Badge detail popup — rendered as sibling inside the fullscreen overlay so it appears on top */}
+          {badgeDetailPost && (
+            <TouchableOpacity
+              style={styles.badgeDetailOverlay}
+              activeOpacity={1}
+              onPress={() => setBadgeDetailPost(null)}
+            >
+              <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+                <View style={styles.badgeDetailBox}>
+                  <Text style={styles.badgeDetailEmoji}>{badgeDetailPost.badge_emoji}</Text>
+                  <Text style={styles.badgeDetailTitle}>{badgeDetailPost.badge_title}</Text>
+                  <Text style={styles.badgeDetailCategory}>
+                    {badgeDetailPost.badge_id ? (BADGE_DESCRIPTIONS[badgeDetailPost.badge_id]?.category ?? "Achievement") : "Achievement"}
+                  </Text>
+                  <View style={styles.badgeDetailDivider} />
+                  <Text style={styles.badgeDetailDesc}>
+                    {badgeDetailPost.badge_id ? (BADGE_DESCRIPTIONS[badgeDetailPost.badge_id]?.description ?? "A special achievement badge.") : "A special achievement badge."}
+                  </Text>
+                  <TouchableOpacity onPress={() => setBadgeDetailPost(null)}>
+                    <Text style={styles.badgeDetailClose}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            </TouchableOpacity>
           )}
         </View>
       </Modal>
@@ -1048,4 +1108,13 @@ const styles = StyleSheet.create({
   },
   fullscreenBadgeEmoji: { fontSize: 64, marginBottom: 12 },
   fullscreenBadgeTitle: { color: "#7B7FE8", fontSize: 20, fontWeight: "bold", textAlign: "center" },
+  fullscreenBadgeTap: { color: "#555", fontSize: 12, marginTop: 8 },
+  badgeDetailOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", alignItems: "center", paddingHorizontal: 32 },
+  badgeDetailBox: { backgroundColor: "#18182e", borderRadius: 24, padding: 32, width: "100%", alignItems: "center", borderWidth: 1, borderColor: "#7B7FE888" },
+  badgeDetailEmoji: { fontSize: 56, marginBottom: 12 },
+  badgeDetailTitle: { color: "#7B7FE8", fontSize: 20, fontWeight: "bold", textAlign: "center", marginBottom: 6 },
+  badgeDetailCategory: { color: "#555", fontSize: 12, textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 },
+  badgeDetailDivider: { width: "100%", height: 1, backgroundColor: "#222", marginBottom: 16 },
+  badgeDetailDesc: { color: "#ccc", fontSize: 15, textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  badgeDetailClose: { color: "#7B7FE8", fontSize: 15, fontWeight: "600" },
 });
