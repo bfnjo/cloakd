@@ -2,10 +2,11 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert, Modal, Platform, ScrollView, StyleSheet, Text,
-  TextInput, TouchableOpacity, View,
+  TextInput, TouchableOpacity, View, Image,
 } from "react-native";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
+import { BADGE_IMAGES } from "../../utils/badgeImages";
 
 type ClothingItem = {
   id: string;
@@ -27,6 +28,8 @@ export default function BadgeWall() {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [outfitCount, setOutfitCount] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
+  const [accountAgeDays, setAccountAgeDays] = useState(0);
+  const [totalLikes, setTotalLikes] = useState(0);
   const [earnedIds, setEarnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -78,6 +81,27 @@ export default function BadgeWall() {
     setOutfitCount(currentOutfitCount);
     setLongestStreak(currentStreak);
 
+    const creationTime = user.metadata?.creationTime;
+    const currentAccountAgeDays = creationTime
+      ? Math.floor((Date.now() - new Date(creationTime).getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+    setAccountAgeDays(currentAccountAgeDays);
+
+    const { data: myPosts } = await supabase
+      .from("community_posts")
+      .select("id")
+      .eq("user_id", user.uid);
+    const myPostIds = (myPosts || []).map((p: { id: string }) => p.id);
+    let currentTotalLikes = 0;
+    if (myPostIds.length > 0) {
+      const { count } = await supabase
+        .from("post_likes")
+        .select("*", { count: "exact", head: true })
+        .in("post_id", myPostIds);
+      currentTotalLikes = count || 0;
+    }
+    setTotalLikes(currentTotalLikes);
+
     const { data: badgeRows } = await supabase
       .from("user_badges")
       .select("badge_id")
@@ -101,6 +125,13 @@ export default function BadgeWall() {
       { id: "outfits-1", met: currentOutfitCount >= 1 },
       { id: "outfits-10", met: currentOutfitCount >= 10 },
       { id: "outfits-100", met: currentOutfitCount >= 100 },
+      { id: "anniversary-1", met: currentAccountAgeDays >= 365 },
+      { id: "anniversary-5", met: currentAccountAgeDays >= 365 * 5 },
+      { id: "anniversary-10", met: currentAccountAgeDays >= 365 * 10 },
+      { id: "likes-1", met: currentTotalLikes >= 1 },
+      { id: "likes-10", met: currentTotalLikes >= 10 },
+      { id: "likes-100", met: currentTotalLikes >= 100 },
+      { id: "likes-1000", met: currentTotalLikes >= 1000 },
     ];
 
     const newlyEarned = conditions.filter((c) => c.met && !earnedSet.has(c.id));
@@ -143,27 +174,27 @@ export default function BadgeWall() {
     {
       title: "Getting Started",
       badges: [
-        buildBadge("signup", "🎉", "Welcome to Cloakd", "Create your account", 1, "Unlocked"),
+        buildBadge("signup", "🎉", "Welcome to Cloakd", "Every great wardrobe starts with one login.", 1, "Unlocked"),
       ],
     },
     {
       title: "Streaks",
       badges: [
-        buildBadge("streak-7", "🔥", "7-Day Streak", "Log outfits 7 days in a row",
+        buildBadge("streak-7", "🔥", "Warming Up", "7 days straight! Your closet is starting to heat up!",
           clamp(longestStreak / 7), `${Math.min(longestStreak, 7)}/7 days`),
-        buildBadge("streak-30", "🥈", "30-Day Streak", "Log outfits 30 days in a row",
+        buildBadge("streak-30", "🥈", "In Rotation", "30 days of building fire outfits. Impressive!",
           clamp(longestStreak / 30), `${Math.min(longestStreak, 30)}/30 days`),
-        buildBadge("streak-100", "🥇", "100-Day Streak", "Log outfits 100 days in a row",
+        buildBadge("streak-100", "🥇", "Unkillable Habit", "100 days. At this point it's not just a streak, it's a part of your daily life.",
           clamp(longestStreak / 100), `${Math.min(longestStreak, 100)}/100 days`),
       ],
     },
     {
       title: "Cost-Per-Wear",
       badges: [
-        buildBadge("cpw-5", "💰", "Smart Spender", "Get one item's cost-per-wear under $5",
+        buildBadge("cpw-5", "💰", "Getting Your Money's Worth", "One item finally earned its keep! Under $5 a wear.",
           bestCPW !== null ? clamp(5 / Math.max(bestCPW, 5)) : 0,
           bestCPW !== null ? `Best: $${bestCPW.toFixed(2)}/wear` : "Log outfits to start"),
-        buildBadge("cpw-1", "💎", "Value Master", "Get one item's cost-per-wear under $1",
+        buildBadge("cpw-1", "💎", "Basically Free", "Under a dollar a wear. That piece of clothing has pretty much paid for itself!",
           bestCPW !== null ? clamp(1 / Math.max(bestCPW, 1)) : 0,
           bestCPW !== null ? `Best: $${bestCPW.toFixed(2)}/wear` : "Log outfits to start"),
       ],
@@ -171,23 +202,47 @@ export default function BadgeWall() {
     {
       title: "Wardrobe Size",
       badges: [
-        buildBadge("items-10", "👕", "Closet Starter", "Add 10 items to your wardrobe",
+        buildBadge("items-10", "👕", "Just Getting Started", "Ten pieces logged. The digitising has begun!",
           clamp(items.length / 10), `${Math.min(items.length, 10)}/10 items`),
-        buildBadge("items-25", "🧥", "Wardrobe Builder", "Add 25 items to your wardrobe",
+        buildBadge("items-25", "🧥", "Building the Archive", "25 pieces added. Your closet's officially getting bigger now!",
           clamp(items.length / 25), `${Math.min(items.length, 25)}/25 items`),
-        buildBadge("items-50", "👑", "Collection Complete", "Add 50 items to your wardrobe",
+        buildBadge("items-50", "👑", "Stacked Inventory", "50 items added. You basically have a walk-in wardrobe!",
           clamp(items.length / 50), `${Math.min(items.length, 50)}/50 items`),
       ],
     },
     {
       title: "Outfits Logged",
       badges: [
-        buildBadge("outfits-1", "📅", "First Look", "Log your first outfit",
+        buildBadge("outfits-1", "📅", "One Day or Day One", "The beginning of many fire outfits to come?",
           clamp(outfitCount / 1), `${Math.min(outfitCount, 1)}/1 outfit`),
-        buildBadge("outfits-10", "📆", "Regular", "Log 10 outfits",
+        buildBadge("outfits-10", "📆", "Creature of Habit (the good kind)", "10 outfits logged and counting.",
           clamp(outfitCount / 10), `${Math.min(outfitCount, 10)}/10 outfits`),
-        buildBadge("outfits-100", "🗓️", "Century Club", "Log 100 outfits",
+        buildBadge("outfits-100", "🗓️", "Century Club", "100 outfits logged. At this point, you could write a book titled What I Wore.",
           clamp(outfitCount / 100), `${Math.min(outfitCount, 100)}/100 outfits`),
+      ],
+    },
+    {
+      title: "Anniversary",
+      badges: [
+        buildBadge("anniversary-1", "🎂", "First CLOAKDaversary", "One year of not staring blankly into your closet every morning.",
+          clamp(accountAgeDays / 365), `${Math.min(accountAgeDays, 365)}/365 days`),
+        buildBadge("anniversary-5", "🎊", "CLOAKD Legend", "5 years in. You've probably outlasted some of your actual clothes.",
+          clamp(accountAgeDays / (365 * 5)), `${Math.min(accountAgeDays, 365 * 5)}/${365 * 5} days`),
+        buildBadge("anniversary-10", "🏆", "CLOAKD GOAT", "A full decade. We should be paying you at this point!",
+          clamp(accountAgeDays / (365 * 10)), `${Math.min(accountAgeDays, 365 * 10)}/${365 * 10} days`),
+      ],
+    },
+    {
+      title: "Community Likes",
+      badges: [
+        buildBadge("likes-1", "👍", "First Like", "You received your first like on a post",
+          clamp(totalLikes / 1), `${Math.min(totalLikes, 1)}/1 like`),
+        buildBadge("likes-10", "❤️", "Getting Noticed", "Double digits. People are watching now.",
+          clamp(totalLikes / 10), `${Math.min(totalLikes, 10)}/10 likes`),
+        buildBadge("likes-100", "🌟", "Fan Favourite", "100 likes. You're basically a fashion icon at this point",
+          clamp(totalLikes / 100), `${Math.min(totalLikes, 100)}/100 likes`),
+        buildBadge("likes-1000", "💫", "Cloakd Celebrity", "1,000 likes. Time to start signing autographs.",
+          clamp(totalLikes / 1000), `${Math.min(totalLikes, 1000)}/1000 likes`),
       ],
     },
   ];
@@ -272,9 +327,10 @@ export default function BadgeWall() {
                 onPress={() => openShareModal(badge)}
                 style={[styles.badgeCard, badge.conditionMet && styles.badgeCardUnlocked]}
               >
-                <Text style={[styles.badgeEmoji, !badge.conditionMet && styles.badgeEmojiLocked]}>
-                  {badge.emoji}
-                </Text>
+                <Image
+                  source={BADGE_IMAGES[badge.id]}
+                  style={[styles.badgeImage, !badge.conditionMet && styles.badgeImageLocked]}
+                />
                 <Text style={styles.badgeTitle}>{badge.title}</Text>
                 <Text style={styles.badgeDescription}>{badge.description}</Text>
                 <View style={styles.progressTrack}>
@@ -307,7 +363,9 @@ export default function BadgeWall() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalEmoji}>{sharingBadge?.emoji}</Text>
+            {sharingBadge && (
+              <Image source={BADGE_IMAGES[sharingBadge.id]} style={styles.modalImage} />
+            )}
             <Text style={styles.modalTitle}>{sharingBadge?.title}</Text>
             <Text style={styles.modalSubtitle}>Share this achievement with the community</Text>
             <TextInput
@@ -373,4 +431,7 @@ const styles = StyleSheet.create({
   modalCancelText: { color: "#888", fontWeight: "bold" },
   modalShareButton: { flex: 1, backgroundColor: "#7B7FE8", padding: 14, borderRadius: 12, alignItems: "center" },
   modalShareText: { color: "#000", fontWeight: "bold" },
+  badgeImage: { width: 64, height: 64, marginBottom: 8 },
+  badgeImageLocked: { opacity: 0.35 },
+  modalImage: { width: 72, height: 72, marginBottom: 8 },
 });

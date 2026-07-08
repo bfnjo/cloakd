@@ -14,6 +14,7 @@ import {
 import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
+import { BADGE_IMAGES } from "../../utils/badgeImages";
 
 type ClothingItem = {
   id: string;
@@ -528,7 +529,9 @@ export default function Community() {
 
               {post.post_type === "badge" ? (
                 <View style={styles.badgeShareCard}>
-                  <Text style={styles.badgeShareEmoji}>{post.badge_emoji}</Text>
+                  {post.badge_id && (
+                    <Image source={BADGE_IMAGES[post.badge_id]} style={styles.badgeShareImage} />
+                  )}
                   <Text style={styles.badgeShareTitle}>{post.badge_title}</Text>
                 </View>
               ) : (
@@ -831,7 +834,9 @@ export default function Community() {
 
               {viewingPost.post_type === "badge" ? (
                 <View style={styles.fullscreenBadgeCard}>
-                  <Text style={styles.fullscreenBadgeEmoji}>{viewingPost.badge_emoji}</Text>
+                  {viewingPost.badge_id && (
+                    <Image source={BADGE_IMAGES[viewingPost.badge_id]} style={styles.fullscreenBadgeImage} />
+                  )}
                   <Text style={styles.fullscreenBadgeTitle}>{viewingPost.badge_title}</Text>
                 </View>
               ) : (
@@ -1048,4 +1053,6 @@ const styles = StyleSheet.create({
   },
   fullscreenBadgeEmoji: { fontSize: 64, marginBottom: 12 },
   fullscreenBadgeTitle: { color: "#7B7FE8", fontSize: 20, fontWeight: "bold", textAlign: "center" },
+  badgeShareImage: { width: 56, height: 56, marginBottom: 8 },
+  fullscreenBadgeImage: { width: 96, height: 96, marginBottom: 12 },
 });
