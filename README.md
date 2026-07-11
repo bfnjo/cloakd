@@ -4,7 +4,7 @@
 <h1 align="center">CLOAKD</h1>
 <p align="center"><em>Dress your best.</em></p>
  
-## Milestone 2 Submission
+## Milestone 3 Submission
  
 **Team Name:** CLOAKD
  
@@ -112,11 +112,17 @@ CLOAKD's features are outlined in the following sections, organised by the follo
 
 **[Proposed]**
 
-Each user will be authenticated with their own unique account. Utilising the Firebase SDK Authentication, users can log in via Email and Password. They will be able to create an account if the user does not already have an existing account. Based on the user’s action, the relevant call to the Firebase authentication instance is made. The FirebaseAuthExceptions are handled within a try-catch block and an alert bar is displayed when the user keys in an invalid input. Only upon successful login or account registration will the user be routed to the next page and the account reflected in the Firebase authentication. 
+Each user will be authenticated with their own unique account. Utilising the Firebase SDK Authentication, users can log in via Email and Password. They will be able to create an account if the user does not already have an existing account. 
+
+Based on the user’s action, the relevant call to the Firebase authentication instance is made. The FirebaseAuthExceptions are handled within a try-catch block and an alert bar is displayed when the user keys in an invalid input. 
+
+Only upon successful login or account registration will the user be routed to the next page and the account reflected in the Firebase authentication. 
 
 **[Current Progress] (Completed)**
 
-Users are able to either log in with their existing account if they have already made one or sign up for a new account with their name, email and password. Upon inputting their log in information, if their account exists and their information is correct, they will be redirected to the home page of their account.
+Users are able to either log in with their existing account if they have already made one or sign up for a new account with their name, email and password. 
+
+Upon inputting their log in information, if their account exists and their information is correct, they will be redirected to the home page of their account.
 
 ---
 
@@ -131,11 +137,19 @@ Users are able to either log in with their existing account if they have already
 
 **[Proposed]**
  
-Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. The wardrobe screen displays all items at a glance, filterable by category, colour or occasion in one tap. Items that have not been worn for 30 or more days and new items that have been added but are yet to be worn are surfaced automatically to encourage rediscovery.
+Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. 
+
+The wardrobe screen displays all items at a glance, filterable by category, colour or occasion in one tap. 
+
+Items that have not been worn for 30 or more days and new items that have been added but are yet to be worn are surfaced automatically to encourage rediscovery.
  
 **[Current Progress] (Completed)**
  
-Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. The wardrobe grid view is functional and displays all saved items. Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery have been implemented as well.
+Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. 
+
+The wardrobe grid view is functional and displays all saved items. 
+
+Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery have been implemented as well.
  
 ---
  
@@ -150,11 +164,23 @@ Users can save clothing items with basic tags (category, subcategory, colour, ma
  
 **[Proposed]**
  
-The outfit builder suggests outfit combinations built entirely from clothes the user already owns. The user is presented with a top, bottom, outerwear, footwear and accessories slot. Each slot is independently swappable, meaning the user can keep what they like and shuffle individual pieces. Weather and occasion filters are applied before suggestions load. Finalised outfits can be saved and logged.
+The outfit builder suggests outfit combinations built entirely from clothes the user already owns. 
+
+The user is presented with a top, bottom, outerwear, footwear and accessories slot. Each slot is independently swappable, meaning the user can keep what they like and shuffle individual pieces. 
+
+Weather and occasion filters are applied before suggestions load. 
+
+Finalised outfits can be saved and logged.
  
 **[Current Progress] (Completed)**
  
-Basic outfit builder feature has been created. Builder will retrieve real time weather data and ask for the type of occasion (casual, office, formal, outdoor, date night). Users can then select each individual item from their wardrobe if they want to build the outfit themselves or they can click the generate outfit button and the builder will do all the work for them. The outfit builder uses specific colour combinations that go well with each other to build the outfit. Once the user is satisfied with the outfit, they can click log outfit and the outfit will be saved and logged on the calendar as well. 30-day rediscovery and pushing of unworn pieces has not been fully implemented in the builder yet.
+Basic outfit builder feature has been created. Builder will retrieve real time weather data and ask for the type of occasion (casual, office, formal, outdoor, date night). 
+
+Users can then select each individual item from their wardrobe if they want to build the outfit themselves or they can click the generate outfit button and the builder will do all the work for them. The outfit builder uses specific colour combinations that go well with each other to build the outfit. 
+
+Generating an outfit will also give users a preview of their outfit, so that they are able to see what their items look like when combined together in an outfit. 
+
+Once the user is satisfied with the outfit, they can click log outfit and the outfit will be saved and logged on the calendar as well. 30-day rediscovery and pushing of unworn pieces has been fully implemented in the builder.
 
 ---
 
@@ -172,7 +198,9 @@ The filter asks the user where they are going and what they will be doing. It us
  
 **[Current Progress] (Completed)**
  
-Open-Meteo API integration is complete and returning live weather data for the user's current location. The logic to filter wardrobe items by temperature range and occasion tag has been connected to the outfit builder.
+Open-Meteo API integration is complete and returning live weather data for the user's current location. T
+
+he logic to filter wardrobe items by temperature range and occasion tag has been connected to the outfit builder. Users are given the option to select what type of occasion it is and build outfits accordingly.
  
 ---
  
@@ -185,11 +213,19 @@ Open-Meteo API integration is complete and returning live weather data for the u
 
 **[Proposed]**
  
-The outfit calendar acts as a personal style diary. Every time a user logs an outfit, it is recorded against the specified date. Users can look back to see exactly what they wore and when. Logging an outfit automatically updates the wear count and cost-per-wear for every item in the outfit. The calendar also surfaces pieces that have not been worn in a while to encourage rediscovery. Users can also edit and delete outfits that have been logged previously.
+The outfit calendar acts as a personal style diary. Every time a user logs an outfit, it is recorded against the specified date. Users can look back to see exactly what they wore and when. 
+
+Logging an outfit automatically updates the wear count and cost-per-wear for every item in the outfit. The calendar also surfaces pieces that have not been worn in a while to encourage rediscovery. 
+
+Users can also edit and delete outfits that have been logged previously.
  
 **[Current Progress] (Completed)**
  
-The calendar has been created and can be navigated by month. Logging an outfit to a date is functional and stored in the database. Automatic updating of wear counts on log is complete. Visual indicators for logged days as well as current date are displayed on the calendar grid. Clothing items that have not been worn in a while have not been set to be suggested yet.
+The calendar has been created and can be navigated by month. Logging an outfit to a date is functional and stored in the database.
+
+Automatic updating of wear counts, wear dates and cost-per-wear on log is complete. 
+
+Visual indicators for logged days as well as current date are displayed on the calendar grid.
  
 ---
 
@@ -204,7 +240,9 @@ The calendar has been created and can be navigated by month. Logging an outfit t
  
 **[Proposed]**
  
-Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default, meaning that a user's wardrobe stays invisible unless they choose to share the outfits they build from it. Shared posts display only garment categories and colours, never purchase prices or private tags. Other users can like and save posts to their inspiration board.
+Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default, meaning that a user's wardrobe stays invisible unless they choose to share the outfits they build from it. 
+
+Shared posts display only garment categories and colours, never purchase prices or private tags. Other users can like and save posts to their inspiration board.
  
 **[Current Progress]**
  
@@ -252,11 +290,15 @@ The settings page is complete. Users can:
 
 **[Proposed]**
  
-Each user has a profile page that displays their username, profile photo, email address as well as their badge wall, stats and settings. The profile is accessible from the home page and serves as a personal hub for reviewing personal style history and achievements.
+Each user has a profile page that displays their username, profile photo, email address as well as their badge wall, stats and settings. 
+
+The profile is accessible from the home page and serves as a personal hub for reviewing personal style history and achievements.
 
 **[Current Progress] (Completed)**
  
-The profile page is accessible from the profile button on the home page header. It is navigable and the user is able to access the stats page, the settings page as well as their badge wall from this page. In addition, the user is able to view their username, email address, profile photo on this page. The user can also log out from this page.
+The profile page is accessible from the profile button on the home page header. It is navigable and the user is able to access the stats page, the settings page as well as their badge wall from this page. 
+
+In addition, the user is able to view their username, email address, profile photo on this page. The user can also log out from this page.
 
 ---
 
@@ -270,11 +312,15 @@ The profile page is accessible from the profile button on the home page header. 
 
 **[Proposed]**
  
-When adding clothing items, users input the purchase price. Cost-per-wear is calculated as price divided by the number of wears and updated automatically each time the item is logged as part of an outfit. The wardrobe view surfaces this figure alongside wear count for each item, giving users a clear picture of the value they are getting out of their clothes.
+When adding clothing items, users input the purchase price. Cost-per-wear is calculated as price divided by the number of wears and updated automatically each time the item is logged as part of an outfit. 
+
+The wardrobe view surfaces this figure alongside wear count for each item, giving users a clear picture of the value they are getting out of their clothes.
 
 **[Current Progress] (Completed)**
  
-The cost-per-wear tracker has been fully built. Users can easily see the number of times they worn each piece of clothing and the cost-per-wear of it in the wardrobe page. Adding a clothing item to an outfit and logging it in the calendar automatically updated the wear count and cost-per-wear of that specific clothing item. There is also a stats page which shows users their best value clothing item (the one with the lowest cost-per-wear) and other statistics like their average cost-per-wear and most worn item.
+The cost-per-wear tracker has been fully built. Users can easily see the number of times they worn each piece of clothing and the cost-per-wear of it in the wardrobe page. Adding a clothing item to an outfit and logging it in the calendar automatically updated the wear count and cost-per-wear of that specific clothing item. 
+
+There is also a stats page which shows users their best value clothing item (the one with the lowest cost-per-wear) and other statistics like their average cost-per-wear and most worn item.
 
 ---
 
@@ -295,7 +341,7 @@ The streak system is fully implemented. A streak is activated when a user logs o
 
 The streak is also visible in the community feed. When a user with an active streak (2+ days) shares an outfit, a fire icon and streak count appear next to their username on the post card, visible to all community members.
 
-The badges page has been scaffolded and is accessible in the app. Badge unlock logic for streak milestones is planned for Milestone 3.
+The badges page is complete with 19 badges included. Users will automatically unlock the badges once they have completed the requirements for each badge. Users are also able to share that they have unlocked a badge to the community page directly by clicking on their unlocked badges.
 
 ---
 
