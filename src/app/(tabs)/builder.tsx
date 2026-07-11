@@ -27,6 +27,7 @@ type OutfitSlots = {
   footwear: ClothingItem | null;
   outerwear: ClothingItem | null;
   accessory: ClothingItem | null;
+  accessory2: ClothingItem | null;
 };
 
 type Weather = {
@@ -152,7 +153,7 @@ function coloursCompatible(a: string, b: string): boolean {
 function outfitIsHarmonious(slots: Partial<OutfitSlots>): boolean {
   const colours = [
     slots.top?.colour, slots.bottom?.colour, slots.footwear?.colour,
-    slots.outerwear?.colour, slots.accessory?.colour,
+    slots.outerwear?.colour, slots.accessory?.colour, slots.accessory2?.colour,
   ].filter((c): c is string => !!c);
   for (let i = 0; i < colours.length; i++)
     for (let j = i + 1; j < colours.length; j++)
@@ -174,13 +175,13 @@ function itemsForCat(wardrobe: ClothingItem[], category: string): ClothingItem[]
 }
 
 function scoreOutfit(slots: OutfitSlots): number {
-  const items = [slots.top, slots.bottom, slots.footwear, slots.outerwear, slots.accessory]
+  const items = [slots.top, slots.bottom, slots.footwear, slots.outerwear, slots.accessory, slots.accessory2]
     .filter(Boolean) as ClothingItem[];
   return items.reduce((acc, item) => acc + Math.max(0, 10 - item.wear_count), 0) + Math.random() * 5;
 }
 
 function slotsAreIdentical(a: OutfitSlots, b: OutfitSlots, locked: Set<keyof OutfitSlots>): boolean {
-  const keys: (keyof OutfitSlots)[] = ["top", "bottom", "footwear", "outerwear", "accessory"];
+  const keys: (keyof OutfitSlots)[] = ["top", "bottom", "footwear", "outerwear", "accessory", "accessory2"];
   return keys.filter(k => !locked.has(k)).every(k => a[k]?.id === b[k]?.id);
 }
 
@@ -202,7 +203,8 @@ function generateOutfit(
   const bottomPool    = lockedSlots.bottom    ? [lockedSlots.bottom]    : (useDress ? [] : shuffleArr(bottoms));
   const footwearPool  = lockedSlots.footwear  ? [lockedSlots.footwear]  : shuffleArr(footwears);
   const outerwearPool = lockedSlots.outerwear ? [lockedSlots.outerwear] : shuffleArr(outerwears);
-  const accessoryPool = lockedSlots.accessory ? [lockedSlots.accessory] : shuffleArr(accessories);
+  const accessoryPool  = lockedSlots.accessory  ? [lockedSlots.accessory]  : shuffleArr(accessories);
+  const accessory2Pool = lockedSlots.accessory2 ? [lockedSlots.accessory2] : shuffleArr(accessories);
 
   if (topPool.length === 0) return null;
   if (!useDress && bottomPool.length === 0) return null;
@@ -211,12 +213,16 @@ function generateOutfit(
   let bestScore = -Infinity;
 
   for (let i = 0; i < attempts; i++) {
+    const acc1 = accessoryPool.length > 0 ? accessoryPool[i % accessoryPool.length] : null;
+    const remaining2 = accessory2Pool.filter(a => a.id !== acc1?.id);
+    const acc2 = remaining2.length > 0 ? remaining2[i % remaining2.length] : null;
     const candidate: OutfitSlots = {
-      top:       topPool[i % topPool.length],
-      bottom:    useDress ? null : bottomPool[i % bottomPool.length],
-      footwear:  footwearPool.length  > 0 ? footwearPool[i  % footwearPool.length]  : null,
-      outerwear: outerwearPool.length > 0 ? outerwearPool[i % outerwearPool.length] : null,
-      accessory: accessoryPool.length > 0 ? accessoryPool[i % accessoryPool.length] : null,
+      top:        topPool[i % topPool.length],
+      bottom:     useDress ? null : bottomPool[i % bottomPool.length],
+      footwear:   footwearPool.length  > 0 ? footwearPool[i  % footwearPool.length]  : null,
+      outerwear:  outerwearPool.length > 0 ? outerwearPool[i % outerwearPool.length] : null,
+      accessory:  acc1,
+      accessory2: acc2,
     };
     if (!outfitIsHarmonious(candidate)) continue;
     if (excludeOutfit && slotsAreIdentical(candidate, excludeOutfit, new Set(Object.keys(lockedSlots) as (keyof OutfitSlots)[]))) continue;
@@ -225,11 +231,12 @@ function generateOutfit(
   }
 
   if (!best) best = {
-    top: topPool[0],
-    bottom: useDress ? null : (bottomPool[0] ?? null),
-    footwear: footwearPool[0] ?? null,
-    outerwear: outerwearPool[0] ?? null,
-    accessory: accessoryPool[0] ?? null,
+    top:        topPool[0],
+    bottom:     useDress ? null : (bottomPool[0] ?? null),
+    footwear:   footwearPool[0] ?? null,
+    outerwear:  outerwearPool[0] ?? null,
+    accessory:  accessoryPool[0] ?? null,
+    accessory2: accessory2Pool.find(a => a.id !== accessoryPool[0]?.id) ?? null,
   };
 
   return best;
@@ -243,7 +250,19 @@ const SLOT_CATEGORIES: Record<string, string[]> = {
   footwear: ["Footwear"],
   outerwear: ["Outerwear"],
   accessory: ["Accessories"],
+  accessory2: ["Accessories"],
 };
+
+function ItemPreview({ item, width, height }: { item: ClothingItem; width: number; height: number }) {
+  if (item.image_url) {
+    return <Image source={{ uri: item.image_url }} style={{ width, height }} contentFit="contain" />;
+  }
+  return (
+    <View style={{ width, height, alignItems: "center", justifyContent: "center" }}>
+      <ClothingIcon category={item.category} subcategory={item.subcategory} colour={item.colour} size={Math.min(width, height) * 0.8} />
+    </View>
+  );
+}
 
 function SlotCard({
   label, emoji, item, hasItems, onPress, isDressSlot = false, disabled = false,
@@ -353,7 +372,7 @@ function PickerModal({
 export default function Builder() {
   const [wardrobe, setWardrobe] = useState<ClothingItem[]>([]);
   const [outfit, setOutfit] = useState<OutfitSlots>({
-    top: null, bottom: null, footwear: null, outerwear: null, accessory: null,
+    top: null, bottom: null, footwear: null, outerwear: null, accessory: null, accessory2: null,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -365,6 +384,7 @@ export default function Builder() {
   const [pickerSlot, setPickerSlot] = useState<keyof OutfitSlots | null>(null);
   const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
   const [rawTempC, setRawTempC] = useState<number | null>(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -442,14 +462,15 @@ export default function Builder() {
       setSavedOutfitId(logData.id);
       const loggedIds = (logData.outfit_log_items || []).map((i: any) => i.clothing_item_id);
       const loggedItems = (wardrobeData || []).filter((i: any) => loggedIds.includes(i.id));
-      const rebuilt: OutfitSlots = { top: null, bottom: null, footwear: null, outerwear: null, accessory: null };
+      const rebuilt: OutfitSlots = { top: null, bottom: null, footwear: null, outerwear: null, accessory: null, accessory2: null };
       loggedItems.forEach((item: ClothingItem) => {
         if (item.category === "Tops" && !rebuilt.top) rebuilt.top = item;
         else if (item.category === "Dress" && !rebuilt.top) rebuilt.top = item;
         else if (item.category === "Bottoms") rebuilt.bottom = item;
         else if (item.category === "Footwear") rebuilt.footwear = item;
         else if (item.category === "Outerwear") rebuilt.outerwear = item;
-        else if (item.category === "Accessories") rebuilt.accessory = item;
+        else if (item.category === "Accessories" && !rebuilt.accessory) rebuilt.accessory = item;
+        else if (item.category === "Accessories") rebuilt.accessory2 = item;
       });
       setOutfit(rebuilt);
     } else {
@@ -514,7 +535,7 @@ export default function Builder() {
   const handleSave = async () => {
     const user = auth.currentUser;
     if (!user) { Alert.alert("Error", "Not logged in"); return; }
-    const items = [outfit.top, outfit.bottom, outfit.footwear, outfit.outerwear, outfit.accessory]
+    const items = [outfit.top, outfit.bottom, outfit.footwear, outfit.outerwear, outfit.accessory, outfit.accessory2]
       .filter((i): i is ClothingItem => i !== null);
     if (items.length === 0) { Alert.alert("No items", "Add at least one item to your outfit first."); return; }
     setSaving(true);
@@ -545,7 +566,7 @@ export default function Builder() {
   const canGenerate = (hasCategory("Tops") || hasCategory("Dress")) &&
                       (hasCategory("Bottoms") || hasCategory("Dress"));
   const isDressOutfit = outfit.top?.category === "Dress";
-  const outfitItemCount = [outfit.top, outfit.bottom, outfit.footwear, outfit.outerwear, outfit.accessory].filter(Boolean).length;
+  const outfitItemCount = [outfit.top, outfit.bottom, outfit.footwear, outfit.outerwear, outfit.accessory, outfit.accessory2].filter(Boolean).length;
   const hasAnyItem = outfitItemCount > 0;
   const isLogged = !!savedOutfitId;
 
@@ -639,14 +660,31 @@ export default function Builder() {
                 disabled={isLogged}
               />
               <SlotCard
-                label="Accessory"
+                label="Accessory 1"
                 emoji="🎒"
                 item={outfit.accessory}
                 hasItems={hasCategory("Accessories")}
                 onPress={() => setPickerSlot("accessory")}
                 disabled={isLogged}
               />
+              <SlotCard
+                label="Accessory 2"
+                emoji="💍"
+                item={outfit.accessory2}
+                hasItems={hasCategory("Accessories")}
+                onPress={() => setPickerSlot("accessory2")}
+                disabled={isLogged}
+              />
             </View>
+
+            {hasAnyItem && (
+              <TouchableOpacity
+                style={styles.previewBtn}
+                onPress={() => setPreviewVisible(true)}
+              >
+                <Text style={styles.previewBtnText}>👁 Preview Outfit</Text>
+              </TouchableOpacity>
+            )}
 
             {hasAnyItem && outfitIsHarmonious(outfit) && (
               <View style={styles.harmonyRow}>
@@ -696,7 +734,7 @@ export default function Builder() {
                       return;
                     }
                   }
-                  setOutfit({ top: null, bottom: null, footwear: null, outerwear: null, accessory: null });
+                  setOutfit({ top: null, bottom: null, footwear: null, outerwear: null, accessory: null, accessory2: null });
                   setSavedOutfitId(null);
                 }}
               >
@@ -717,7 +755,8 @@ export default function Builder() {
             pickerSlot === "bottom" ? "Select Bottom" :
             pickerSlot === "footwear" ? "Select Footwear" :
             pickerSlot === "outerwear" ? "Select Outerwear" :
-            "Select Accessory"
+            pickerSlot === "accessory" ? "Select Accessory 1" :
+            "Select Accessory 2"
           }
           items={getPickerItems(pickerSlot)}
           selectedId={outfit[pickerSlot]?.id ?? null}
@@ -726,6 +765,75 @@ export default function Builder() {
           onClose={() => setPickerSlot(null)}
         />
       )}
+
+      <Modal visible={previewVisible} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.previewOverlay}
+          activeOpacity={1}
+          onPress={() => setPreviewVisible(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ width: "100%" }}>
+            <View style={styles.previewCard}>
+              <View style={styles.previewHeader}>
+                <Text style={styles.previewTitle}>Outfit Preview</Text>
+                <TouchableOpacity onPress={() => setPreviewVisible(false)}>
+                  <Text style={styles.previewCloseBtn}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.previewGrid}>
+                {Array.from({ length: 22 }).map((_, i) => (
+                  <View key={`h-${i}`} style={[styles.gridHLine, { top: i * 22 }]} />
+                ))}
+                {Array.from({ length: 22 }).map((_, i) => (
+                  <View key={`v-${i}`} style={[styles.gridVLine, { left: i * 22 }]} />
+                ))}
+
+                {/* Outerwear — pinned to left edge at shirt level */}
+                {outfit.outerwear && (
+                  <View style={{ position: "absolute", left: 4, top: 12 }}>
+                    <ItemPreview item={outfit.outerwear} width={94} height={122} />
+                  </View>
+                )}
+
+                {/* Top or Dress — centred */}
+                {outfit.top && (
+                  <View style={{ position: "absolute", left: 0, right: 0, top: 10, alignItems: "center" }}>
+                    <ItemPreview item={outfit.top} width={178} height={isDressOutfit ? 310 : 154} />
+                  </View>
+                )}
+
+                {/* Bottom — overlap shirt by 84px */}
+                {!isDressOutfit && outfit.bottom && (
+                  <View style={{ position: "absolute", left: 0, right: 0, top: 80, alignItems: "center" }}>
+                    <ItemPreview item={outfit.bottom} width={162} height={262} />
+                  </View>
+                )}
+
+                {/* Footwear — same 84px overlap as shirt-to-pants */}
+                {outfit.footwear && (
+                  <View style={{ position: "absolute", left: 0, right: 0, top: isDressOutfit ? 242 : 258, alignItems: "center" }}>
+                    <ItemPreview item={outfit.footwear} width={186} height={112} />
+                  </View>
+                )}
+
+                {/* Accessories — flanking the shirt */}
+                {(outfit.accessory || outfit.accessory2) && (
+                  <View style={{ position: "absolute", left: 0, right: 0, top: 76, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                    <View style={{ width: 100, alignItems: "flex-end" }}>
+                      {outfit.accessory && <ItemPreview item={outfit.accessory} width={66} height={66} />}
+                    </View>
+                    <View style={{ width: 178 }} />
+                    <View style={{ width: 100, alignItems: "flex-start" }}>
+                      {outfit.accessory2 && <ItemPreview item={outfit.accessory2} width={66} height={66} />}
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -793,4 +901,14 @@ const styles = StyleSheet.create({
   pickerTick: { fontSize: 18, color: "#7B7FE8", fontWeight: "bold" },
   clearOutfitBtn: { alignItems: "center", padding: 14, marginBottom: 12 },
   clearOutfitBtnText: { color: "#ff4444", fontSize: 14, fontWeight: "bold" },
+  previewBtn: { backgroundColor: "#0d0d1a", borderRadius: 14, padding: 14, alignItems: "center", marginBottom: 14, borderWidth: 1, borderColor: "#7B7FE855" },
+  previewBtnText: { color: "#7B7FE8", fontWeight: "bold", fontSize: 15 },
+  previewOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.88)", justifyContent: "center", alignItems: "center", paddingHorizontal: 52 },
+  previewCard: { backgroundColor: "#f0e8da", borderRadius: 20, width: "100%", overflow: "hidden" },
+  previewHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#ddd0be" },
+  previewTitle: { fontSize: 17, fontWeight: "bold", color: "#111" },
+  previewCloseBtn: { fontSize: 18, color: "#888", padding: 4 },
+  previewGrid: { position: "relative", height: 400, overflow: "hidden", backgroundColor: "#f0e8da" },
+  gridHLine: { position: "absolute", left: 0, right: 0, height: 1, backgroundColor: "#ddd0be" },
+  gridVLine: { position: "absolute", top: 0, bottom: 0, width: 1, backgroundColor: "#ddd0be" },
 });
