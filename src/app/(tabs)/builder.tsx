@@ -566,6 +566,17 @@ export default function Builder() {
   const canGenerate = (hasCategory("Tops") || hasCategory("Dress")) &&
                       (hasCategory("Bottoms") || hasCategory("Dress"));
   const isDressOutfit = outfit.top?.category === "Dress";
+  const previewIsShorts = !isDressOutfit && outfit.bottom?.subcategory === "Shorts";
+  // All dimensions scaled ×1.3 from originals
+  const previewShirtH    = 200;   // 154 × 1.3
+  const previewBottomH   = previewIsShorts ? 182 : 341;  // 140/262 × 1.3
+  const previewFootwearH = 146;   // 112 × 1.3
+  // Positions preserve exact same overlap values as before (40px shirt→shorts, 20px shorts→footwear, 84px shirt/pants→pants/footwear)
+  const previewShirtBottom  = 10 + previewShirtH;
+  const previewBottomTop    = previewIsShorts ? previewShirtBottom - 52 : previewShirtBottom - 84;
+  const previewFootwearTop  = isDressOutfit ? 242 : previewBottomTop + previewBottomH - (previewIsShorts ? 20 : 84);
+  const previewFootwearBottom = previewFootwearTop + previewFootwearH;
+  const previewGridHeight   = Math.ceil(previewFootwearBottom / 22) * 22;
   const outfitItemCount = [outfit.top, outfit.bottom, outfit.footwear, outfit.outerwear, outfit.accessory, outfit.accessory2].filter(Boolean).length;
   const hasAnyItem = outfitItemCount > 0;
   const isLogged = !!savedOutfitId;
@@ -781,7 +792,7 @@ export default function Builder() {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.previewGrid}>
+              <View style={[styles.previewGrid, { height: previewGridHeight }]}>
                 {Array.from({ length: 22 }).map((_, i) => (
                   <View key={`h-${i}`} style={[styles.gridHLine, { top: i * 22 }]} />
                 ))}
@@ -792,41 +803,40 @@ export default function Builder() {
                 {/* Outerwear — pinned to left edge at shirt level */}
                 {outfit.outerwear && (
                   <View style={{ position: "absolute", left: 4, top: 12 }}>
-                    <ItemPreview item={outfit.outerwear} width={94} height={122} />
+                    <ItemPreview item={outfit.outerwear} width={122} height={159} />
                   </View>
                 )}
 
                 {/* Top or Dress — centred */}
                 {outfit.top && (
                   <View style={{ position: "absolute", left: 0, right: 0, top: 10, alignItems: "center" }}>
-                    <ItemPreview item={outfit.top} width={178} height={isDressOutfit ? 310 : 154} />
+                    <ItemPreview item={outfit.top} width={231} height={isDressOutfit ? 403 : previewShirtH} />
                   </View>
                 )}
 
-                {/* Bottom — overlap shirt by 84px */}
+                {/* Bottom — overlap with shirt */}
                 {!isDressOutfit && outfit.bottom && (
-                  <View style={{ position: "absolute", left: 0, right: 0, top: 80, alignItems: "center" }}>
-                    <ItemPreview item={outfit.bottom} width={162} height={262} />
+                  <View style={{ position: "absolute", left: 0, right: 0, top: previewBottomTop, alignItems: "center" }}>
+                    <ItemPreview item={outfit.bottom} width={211} height={previewBottomH} />
                   </View>
                 )}
 
-                {/* Footwear — same 84px overlap as shirt-to-pants */}
+                {/* Footwear */}
                 {outfit.footwear && (
-                  <View style={{ position: "absolute", left: 0, right: 0, top: isDressOutfit ? 242 : 258, alignItems: "center" }}>
-                    <ItemPreview item={outfit.footwear} width={186} height={112} />
+                  <View style={{ position: "absolute", left: 0, right: 0, top: previewFootwearTop, alignItems: "center" }}>
+                    <ItemPreview item={outfit.footwear} width={242} height={previewFootwearH} />
                   </View>
                 )}
 
-                {/* Accessories — flanking the shirt */}
-                {(outfit.accessory || outfit.accessory2) && (
-                  <View style={{ position: "absolute", left: 0, right: 0, top: 76, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                    <View style={{ width: 100, alignItems: "flex-end" }}>
-                      {outfit.accessory && <ItemPreview item={outfit.accessory} width={66} height={66} />}
-                    </View>
-                    <View style={{ width: 178 }} />
-                    <View style={{ width: 100, alignItems: "flex-start" }}>
-                      {outfit.accessory2 && <ItemPreview item={outfit.accessory2} width={66} height={66} />}
-                    </View>
+                {/* Accessories — rendered last so they sit in front, overlap outfit sides */}
+                {outfit.accessory && (
+                  <View style={{ position: "absolute", left: 0, top: 70 }}>
+                    <ItemPreview item={outfit.accessory} width={167} height={167} />
+                  </View>
+                )}
+                {outfit.accessory2 && (
+                  <View style={{ position: "absolute", right: 0, top: 70 }}>
+                    <ItemPreview item={outfit.accessory2} width={167} height={167} />
                   </View>
                 )}
               </View>
@@ -903,12 +913,12 @@ const styles = StyleSheet.create({
   clearOutfitBtnText: { color: "#ff4444", fontSize: 14, fontWeight: "bold" },
   previewBtn: { backgroundColor: "#0d0d1a", borderRadius: 14, padding: 14, alignItems: "center", marginBottom: 14, borderWidth: 1, borderColor: "#7B7FE855" },
   previewBtnText: { color: "#7B7FE8", fontWeight: "bold", fontSize: 15 },
-  previewOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.88)", justifyContent: "center", alignItems: "center", paddingHorizontal: 52 },
+  previewOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.88)", justifyContent: "center", alignItems: "center", paddingHorizontal: 24 },
   previewCard: { backgroundColor: "#f0e8da", borderRadius: 20, width: "100%", overflow: "hidden" },
   previewHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#ddd0be" },
   previewTitle: { fontSize: 17, fontWeight: "bold", color: "#111" },
   previewCloseBtn: { fontSize: 18, color: "#888", padding: 4 },
-  previewGrid: { position: "relative", height: 400, overflow: "hidden", backgroundColor: "#f0e8da" },
+  previewGrid: { position: "relative", height: 530, overflow: "hidden", backgroundColor: "#f0e8da" },
   gridHLine: { position: "absolute", left: 0, right: 0, height: 1, backgroundColor: "#ddd0be" },
   gridVLine: { position: "absolute", top: 0, bottom: 0, width: 1, backgroundColor: "#ddd0be" },
 });
