@@ -25,6 +25,7 @@ type ClothingItem = {
   brand?: string;
   price?: number;
   material?: string;
+  image_url?: string | null;
 };
 
 type OutfitLog = {
@@ -150,38 +151,44 @@ export default function Community() {
 
   const fetchFeed = async () => {
     setLoadingFeed(true);
-    const user = await getUser();
-    if (user) {
-      setCurrentUserId(user.uid);
-      computeStreak(user.uid).then(setCurrentUserStreak);
-    }
-
-    const { data, error } = await supabase
-      .from("community_posts")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50);
-    if (error) { setLoadingFeed(false); return; }
-
-    const enriched: CommunityPost[] = [];
-    for (const post of data || []) {
-      if (post.post_type === "badge" || !post.outfit_log_id) {
-        enriched.push({ ...post, items: [] });
-        continue;
+    try {
+      const user = await getUser();
+      if (user) {
+        setCurrentUserId(user.uid);
+        computeStreak(user.uid).then(setCurrentUserStreak);
       }
-      const { data: logItems } = await supabase
-        .from("outfit_log_items")
-        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory, brand, price, material)")
-        .eq("outfit_log_id", post.outfit_log_id);
-      enriched.push({
-        ...post,
-        items: (logItems || []).map((li: any) => li.clothing_items).filter(Boolean),
-      });
+
+      const { data, error } = await supabase
+        .from("community_posts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) { console.error("fetchFeed community_posts error:", error.message); return; }
+
+      const enriched: CommunityPost[] = [];
+      for (const post of data || []) {
+        if (post.post_type === "badge" || !post.outfit_log_id) {
+          enriched.push({ ...post, items: [] });
+          continue;
+        }
+        const { data: logItems, error: itemsError } = await supabase
+          .from("outfit_log_items")
+          .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory, brand, price, material, image_url)")
+          .eq("outfit_log_id", post.outfit_log_id);
+        if (itemsError) console.error("fetchFeed items error:", itemsError.message);
+        enriched.push({
+          ...post,
+          items: (logItems || []).map((li: any) => li.clothing_items).filter(Boolean),
+        });
+      }
+      setPosts(enriched);
+      const uid = (await getUser())?.uid ?? null;
+      await fetchLikes(enriched.map((p) => p.id), uid);
+    } catch (e) {
+      console.error("fetchFeed unexpected error:", e);
+    } finally {
+      setLoadingFeed(false);
     }
-    setPosts(enriched);
-    const uid = (await getUser())?.uid ?? null;
-    await fetchLikes(enriched.map((p) => p.id), uid);
-    setLoadingFeed(false);
   };
 
   const fetchLikes = async (postIds: string[], userId: string | null) => {
@@ -270,7 +277,7 @@ export default function Community() {
     for (const log of logData) {
       const { data: logItems } = await supabase
         .from("outfit_log_items")
-        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory, brand, price, material)")
+        .select("clothing_item_id, clothing_items(id, name, category, colour, subcategory, brand, price, material, image_url)")
         .eq("outfit_log_id", log.id);
       withItems.push({
         id: log.id,
@@ -470,7 +477,11 @@ export default function Community() {
           onPress={(e) => { e.stopPropagation(); setSelectedClothingItem(item); }}
           activeOpacity={0.7}
         >
-          <ClothingIcon category={item.category} subcategory={item.subcategory} size={14} colour={item.colour} />
+          {item.image_url ? (
+            <Image source={{ uri: item.image_url }} style={styles.itemChipPhoto} resizeMode="contain" />
+          ) : (
+            <ClothingIcon category={item.category} subcategory={item.subcategory} size={14} colour={item.colour} />
+          )}
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
           <Text style={styles.itemColour}>{item.colour}</Text>
         </TouchableOpacity>
@@ -516,7 +527,7 @@ export default function Community() {
           <Text style={styles.emptySubtext}>Be the first to share an outfit</Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.feed} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.feed} showsVerticalScrollIndicator={false}>
           {posts.map((post) => (
             <TouchableOpacity key={post.id} style={styles.postCard} onPress={() => setViewingPost(post)} activeOpacity={0.85}>
               <View style={styles.postHeader}>
@@ -820,7 +831,7 @@ export default function Community() {
       {/* Full-screen post modal */}
       <Modal visible={!!viewingPost} animationType="fade" transparent presentationStyle="overFullScreen">
         <View style={styles.fullscreenOverlay}>
-          <TouchableOpacity style={styles.fullscreenClose} onPress={() => setViewingPost(null)}>
+          <TouchableOpacity style={styles.fullscreenClose} onPress={() => { setViewingPost(null); setSelectedClothingItem(null); }}>
             <Text style={styles.fullscreenCloseText}>✕</Text>
           </TouchableOpacity>
           {viewingPost && (
@@ -875,18 +886,27 @@ export default function Community() {
                 <>
                   <View style={styles.fullscreenIconGrid}>
                     {viewingPost.items.map((item) => (
-                      <View key={item.id} style={styles.fullscreenIconCard}>
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.fullscreenIconCard}
+                        onPress={() => setSelectedClothingItem(item)}
+                        activeOpacity={0.75}
+                      >
                         <View style={styles.fullscreenIconBg}>
-                          <ClothingIcon
-                            category={item.category}
-                            subcategory={item.subcategory}
-                            size={64}
-                            colour={item.colour}
-                          />
+                          {item.image_url ? (
+                            <Image source={{ uri: item.image_url }} style={styles.fullscreenItemPhoto} resizeMode="contain" />
+                          ) : (
+                            <ClothingIcon
+                              category={item.category}
+                              subcategory={item.subcategory}
+                              size={64}
+                              colour={item.colour}
+                            />
+                          )}
                         </View>
                         <Text style={styles.fullscreenIconName} numberOfLines={2}>{item.name}</Text>
                         <Text style={styles.fullscreenIconColour}>{item.colour}</Text>
-                      </View>
+                      </TouchableOpacity>
                     ))}
                   </View>
 
@@ -900,6 +920,69 @@ export default function Community() {
                 </>
               )}
             </ScrollView>
+          )}
+
+          {/* Item detail popup — rendered as sibling inside the fullscreen overlay so it appears on top */}
+          {selectedClothingItem && (
+            <TouchableOpacity
+              style={styles.badgeDetailOverlay}
+              activeOpacity={1}
+              onPress={() => setSelectedClothingItem(null)}
+            >
+              <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+                <View style={styles.clothingDetailBox}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Item Details</Text>
+                    <TouchableOpacity onPress={() => setSelectedClothingItem(null)}>
+                      <Text style={styles.modalClose}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.clothingIconLarge}>
+                    {selectedClothingItem.image_url ? (
+                      <Image source={{ uri: selectedClothingItem.image_url }} style={styles.clothingDetailPhoto} resizeMode="contain" />
+                    ) : (
+                      <ClothingIcon
+                        category={selectedClothingItem.category}
+                        subcategory={selectedClothingItem.subcategory}
+                        size={80}
+                        colour={selectedClothingItem.colour}
+                      />
+                    )}
+                  </View>
+                  <Text style={styles.clothingDetailName}>{selectedClothingItem.name}</Text>
+                  <View style={styles.clothingDetailRows}>
+                    <View style={styles.clothingDetailRow}>
+                      <Text style={styles.clothingDetailLabel}>Type</Text>
+                      <Text style={styles.clothingDetailValue}>
+                        {selectedClothingItem.category}{selectedClothingItem.subcategory ? ` · ${selectedClothingItem.subcategory}` : ""}
+                      </Text>
+                    </View>
+                    <View style={styles.clothingDetailRow}>
+                      <Text style={styles.clothingDetailLabel}>Colour</Text>
+                      <Text style={styles.clothingDetailValue}>{selectedClothingItem.colour}</Text>
+                    </View>
+                    {selectedClothingItem.brand ? (
+                      <View style={styles.clothingDetailRow}>
+                        <Text style={styles.clothingDetailLabel}>Brand</Text>
+                        <Text style={styles.clothingDetailValue}>{selectedClothingItem.brand}</Text>
+                      </View>
+                    ) : null}
+                    {selectedClothingItem.price != null && selectedClothingItem.price > 0 ? (
+                      <View style={styles.clothingDetailRow}>
+                        <Text style={styles.clothingDetailLabel}>Cost</Text>
+                        <Text style={styles.clothingDetailValue}>${selectedClothingItem.price.toFixed(2)}</Text>
+                      </View>
+                    ) : null}
+                    {selectedClothingItem.material ? (
+                      <View style={styles.clothingDetailRow}>
+                        <Text style={styles.clothingDetailLabel}>Material</Text>
+                        <Text style={styles.clothingDetailValue}>{selectedClothingItem.material}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </TouchableOpacity>
           )}
 
           {/* Badge detail popup — rendered as sibling inside the fullscreen overlay so it appears on top */}
@@ -1065,6 +1148,7 @@ const styles = StyleSheet.create({
   },
   fullscreenIconItem: { alignItems: "center", gap: 4, width: 90 },
   fullscreenIconBg: { backgroundColor: "#2e2e3a", borderRadius: 10, padding: 10, alignItems: "center", justifyContent: "center" },
+  fullscreenItemPhoto: { width: 80, height: 80, borderRadius: 6 },
   fullscreenIconName: { color: "#ddd", fontSize: 12, textAlign: "center", fontWeight: "500" },
   fullscreenIconColour: { color: "#666", fontSize: 11, textAlign: "center" },
   fullscreenCaption: { color: "#ccc", fontSize: 20, lineHeight: 24, marginBottom: 20 },
@@ -1088,6 +1172,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36,
   },
   clothingIconLarge: { alignSelf: "center", padding: 20, borderRadius: 16, backgroundColor: "#2e2e3a", marginBottom: 4 },
+  clothingDetailPhoto: { width: 120, height: 120, borderRadius: 8 },
   clothingDetailName: { color: "#fff", fontSize: 20, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
   clothingDetailRows: { gap: 0 },
   clothingDetailRow: {
@@ -1122,4 +1207,13 @@ const styles = StyleSheet.create({
   badgeDetailDivider: { width: "100%", height: 1, backgroundColor: "#222", marginBottom: 16 },
   badgeDetailDesc: { color: "#ccc", fontSize: 15, textAlign: "center", lineHeight: 22, marginBottom: 24 },
   badgeDetailClose: { color: "#7B7FE8", fontSize: 15, fontWeight: "600" },
+  // Wardrobe-identical item cards used in community feed
+  communityItemGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 8 },
+  communityItemCard: { backgroundColor: "#111", borderRadius: 16, padding: 12, width: "48%", marginBottom: 12, borderWidth: 1, borderColor: "#222" },
+  communityItemImageBox: { backgroundColor: "#2e2e3a", borderRadius: 12, height: 100, alignItems: "center", justifyContent: "center", marginBottom: 10 },
+  communityItemPhoto: { width: "100%", height: "100%", borderRadius: 12 },
+  communityItemName: { fontSize: 14, fontWeight: "bold", color: "#fff", marginBottom: 2 },
+  communityItemBrand: { fontSize: 12, color: "#7B7FE8", marginBottom: 2 },
+  communityItemDetail: { fontSize: 12, color: "#888" },
+  itemChipPhoto: { width: 18, height: 18, borderRadius: 3 },
 });

@@ -37,7 +37,7 @@ type ClothingItem = {
 const subcategories: Record<string, string[]> = {
   Tops: ["Round Neck", "Polo", "Henley", "Button Up", "Hoodie", "Tank Top", "Crewneck", "Jersey", "Tube Top", "Halter Top", "Blouse", "Crop Top", "Off-Shoulder", "Bustier", "Corset"],
   Bottoms: ["Skinny Jeans", "Straight Cut", "Baggy Jeans", "Carpenter", "Shorts", "Chinos", "Sweatpants", "Cargo", "Trackpants", "Mini Skirt", "Midi Skirt", "Maxi Skirt", "A-Line Skirt", "Pleated Skirt", "Wrap Skirt"],
-  Outerwear: ["Jacket", "Coat", "Blazer", "Windbreaker", "Puffer", "Hoodie", "Quarterzip", "Bomber", "Cardigan", "Overshirt"],
+  Outerwear: ["Jacket", "Coat", "Blazer", "Windbreaker", "Puffer", "Hoodie", "Quarterzip", "Bomber", "Cardigan", "Overshirt", "Sweater"],
   Dress: ["Mini Dress", "Midi Dress", "Maxi Dress", "Slip Dress", "Wrap Dress", "Shirt Dress", "Bodycon Dress", "A-Line Dress", "Sundress", "Cocktail Dress"],
   Footwear: ["Sneakers", "Boots", "Loafers", "Sandals", "Dress Shoes"],
   Accessories: ["Hat", "Belt", "Bag", "Watch", "Sunglasses", "Scarf", "Ring", "Necklace", "Bracelet", "Earrings"],
