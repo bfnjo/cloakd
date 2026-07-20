@@ -4,7 +4,7 @@
 <h1 align="center">CLOAKD</h1>
 <p align="center"><em>Dress your best.</em></p>
  
-## Milestone 3 Submission
+## Final Submission
  
 **Team Name:** CLOAKD
  
@@ -90,12 +90,7 @@ Ultimately, we envision CLOAKD as the app people reach for every morning, the on
  
 ## Scope of Project
  
-CLOAKD is a mobile app that lets users photograph and catalogue every clothing item they own, then suggests daily outfits built entirely from their existing wardrobe — filtered by real-time weather and occasion. Users log outfits to a calendar, track cost-per-wear statistics, build daily streaks, and optionally share looks to a community feed.
- 
-CLOAKD's features are outlined in the following sections, organised by the following tags:
- 
-- **[Proposed]** — features targeted for completion
-- **[Current Progress]** — what has been built so far
+CLOAKD is a mobile app that lets users photograph and catalogue every clothing item they own, then suggests daily outfits built entirely from their existing wardrobe — filtered by real-time weather and occasion. Users log outfits to a calendar, track cost-per-wear statistics, build daily streaks, earn achievement badges, and optionally share looks to a community feed.
 
 ---
 
@@ -110,19 +105,9 @@ CLOAKD's features are outlined in the following sections, organised by the follo
   <img src="./assets/images/cloakd_images/signup_page.jpg" alt="Add Clothing Item Pop-Up" width="200" />
 </p>
 
-**[Proposed]**
+Users are authenticated with their own unique account via the Firebase SDK Authentication (email and password). FirebaseAuthExceptions are handled within a try-catch block and an alert is displayed when the user keys in an invalid input. Only upon successful login or account registration is the user routed to the home page.
 
-Each user will be authenticated with their own unique account. Utilising the Firebase SDK Authentication, users can log in via Email and Password. They will be able to create an account if the user does not already have an existing account. 
-
-Based on the user’s action, the relevant call to the Firebase authentication instance is made. The FirebaseAuthExceptions are handled within a try-catch block and an alert bar is displayed when the user keys in an invalid input. 
-
-Only upon successful login or account registration will the user be routed to the next page and the account reflected in the Firebase authentication. 
-
-**[Current Progress] (Completed)**
-
-Users are able to either log in with their existing account if they have already made one or sign up for a new account with their name, email and password. 
-
-Upon inputting their log in information, if their account exists and their information is correct, they will be redirected to the home page of their account.
+Users can either log in with an existing account or sign up with their name, email and password. If account credentials are correct, they are redirected to the home page. Account deletion with password re-authentication is also fully supported.
 
 ---
 
@@ -135,21 +120,9 @@ Upon inputting their log in information, if their account exists and their infor
   <img src="./assets/images/cloakd_images/add_clothing.jpg" alt="Add Clothing Item Pop-Up" width="200" />
 </p>
 
-**[Proposed]**
- 
-Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. 
+Users add their clothes by uploading a photo of each item and tagging it with basic details such as colour, category, subcategory, material, brand and purchase price. The wardrobe screen displays all items at a glance, filterable by category, colour or subcategory in one tap. Items that have not been worn for 30 or more days and new items that have been added but are yet to be worn are surfaced automatically to encourage rediscovery.
 
-The wardrobe screen displays all items at a glance, filterable by category, colour or occasion in one tap. 
-
-Items that have not been worn for 30 or more days and new items that have been added but are yet to be worn are surfaced automatically to encourage rediscovery.
- 
-**[Current Progress] (Completed)**
- 
-Users can save clothing items with basic tags (category, subcategory, colour, material, brand and purchase price) to the database via Supabase. 
-
-The wardrobe grid view is functional and displays all saved items. 
-
-Image capturing and background removal has been implemented. Filtering and the 30-day rediscovery have been implemented as well.
+Users can save clothing items with full metadata to Supabase. The wardrobe grid view displays all saved items with their uploaded photos. Image capturing with background removal is implemented. Filtering by category, colour and subcategory, as well as 30-day rediscovery surfacing, are both fully implemented.
  
 ---
  
@@ -162,25 +135,9 @@ Image capturing and background removal has been implemented. Filtering and the 3
   <img src="./assets/images/cloakd_images/outfit_builder_default.png" alt="Outfit Builder Default Page" width="200" />
 </p>
  
-**[Proposed]**
- 
-The outfit builder suggests outfit combinations built entirely from clothes the user already owns. 
+The outfit builder suggests outfit combinations built entirely from clothes the user already owns. The user is presented with a top, bottom, outerwear, footwear and accessories slot. Each slot is independently swappable, meaning the user can keep what they like and shuffle individual pieces. Weather and occasion filters are applied before suggestions load. Finalised outfits can be saved and logged.
 
-The user is presented with a top, bottom, outerwear, footwear and accessories slot. Each slot is independently swappable, meaning the user can keep what they like and shuffle individual pieces. 
-
-Weather and occasion filters are applied before suggestions load. 
-
-Finalised outfits can be saved and logged.
- 
-**[Current Progress] (Completed)**
- 
-Basic outfit builder feature has been created. Builder will retrieve real time weather data and ask for the type of occasion (casual, office, formal, outdoor, date night). 
-
-Users can then select each individual item from their wardrobe if they want to build the outfit themselves or they can click the generate outfit button and the builder will do all the work for them. The outfit builder uses specific colour combinations that go well with each other to build the outfit. 
-
-Generating an outfit will also give users a preview of their outfit, so that they are able to see what their items look like when combined together in an outfit. 
-
-Once the user is satisfied with the outfit, they can click log outfit and the outfit will be saved and logged on the calendar as well. 30-day rediscovery and pushing of unworn pieces has been fully implemented in the builder.
+Basic outfit builder feature has been created. The builder retrieves real-time weather data and prompts for occasion (casual, office, formal, outdoor, date night). Users can select each individual item manually or click the generate button to auto-build a colour-coordinated outfit from their wardrobe. Generating an outfit produces a layered visual preview so users can see how items combine before logging. The 30-day rediscovery logic and pushing of unworn pieces are fully integrated into the builder.
 
 ---
 
@@ -192,15 +149,9 @@ Once the user is satisfied with the outfit, they can click log outfit and the ou
   <img src="./assets/images/cloakd_images/outfit_builder_page.png" alt="Outfit Builder Page" width="200" />
 </p>
  
-**[Proposed]**
- 
-The filter asks the user where they are going and what they will be doing. It uses real-time weather data from the Open-Meteo API for the user's location and filters the wardrobe to suggest outfits suitable for the conditions and occasion. Supported occasions: casual, office, formal, outdoor, date night.
- 
-**[Current Progress] (Completed)**
- 
-Open-Meteo API integration is complete and returning live weather data for the user's current location. T
+The filter asks the user where they are going and what they will be doing. It uses real-time weather data from the Open-Meteo API for the user's current location and filters the wardrobe to suggest outfits suitable for conditions and occasion. Supported occasions: casual, office, formal, outdoor, date night.
 
-he logic to filter wardrobe items by temperature range and occasion tag has been connected to the outfit builder. Users are given the option to select what type of occasion it is and build outfits accordingly.
+Open-Meteo API integration is complete and returns live weather data for the user's current location. The logic to filter wardrobe items by temperature range and occasion tag is connected to the outfit builder.
  
 ---
  
@@ -211,21 +162,9 @@ he logic to filter wardrobe items by temperature range and occasion tag has been
   <img src="./assets/images/cloakd_images/calendar_page.jpg" alt="Calendar Page" width="200" />
 </p>
 
-**[Proposed]**
- 
-The outfit calendar acts as a personal style diary. Every time a user logs an outfit, it is recorded against the specified date. Users can look back to see exactly what they wore and when. 
+The outfit calendar acts as a personal style diary. Every time a user logs an outfit, it is recorded against the specified date. Users can look back to see exactly what they wore and when. Logging an outfit automatically updates the wear count and cost-per-wear for every item in the outfit. Users can also edit and delete outfits that have been logged previously.
 
-Logging an outfit automatically updates the wear count and cost-per-wear for every item in the outfit. The calendar also surfaces pieces that have not been worn in a while to encourage rediscovery. 
-
-Users can also edit and delete outfits that have been logged previously.
- 
-**[Current Progress] (Completed)**
- 
-The calendar has been created and can be navigated by month. Logging an outfit to a date is functional and stored in the database.
-
-Automatic updating of wear counts, wear dates and cost-per-wear on log is complete. 
-
-Visual indicators for logged days as well as current date are displayed on the calendar grid.
+The calendar can be navigated by month. Logging an outfit to a date is functional and stored in the database. Automatic updating of wear counts, wear dates and cost-per-wear on log is complete. Visual indicators for logged days and the current date are displayed on the calendar grid.
  
 ---
 
@@ -238,17 +177,9 @@ Visual indicators for logged days as well as current date are displayed on the c
   <img src="./assets/images/cloakd_images/community_page_item_card.jpg" alt="Community Page Item Card" width="200" />
 </p>
  
-**[Proposed]**
- 
-Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default, meaning that a user's wardrobe stays invisible unless they choose to share the outfits they build from it. 
+Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default — a user's wardrobe stays invisible unless they choose to share. Shared posts display garment categories, colours and item photos. Other users can like posts and view who else has liked them.
 
-Shared posts display only garment categories and colours, never purchase prices or private tags. Other users can like and save posts to their inspiration board.
- 
-**[Current Progress]**
- 
-The community feed is fully functional. Users can select a logged outfit, attach a photo and caption, and share it to the community feed. Each post displays the outfit date, caption, shared photo, and the individual clothing items as tappable chips.
-
-Tapping a clothing chip opens a detail panel showing the item's name, category, subcategory, colour, brand, purchase price, and material — giving other users full context on each piece without exposing private data unnecessarily.
+The community feed is fully functional. Users can select a logged outfit, attach a photo and caption, and share it to the community feed. Each post displays the outfit date, caption, shared photo, and the individual clothing items as tappable chips with their wardrobe photos. Tapping a clothing chip opens a detail panel showing the item's name, category, subcategory, colour, brand, purchase price and material.
 
 The liking system is complete. Users can like and unlike any post with a single tap. Like counts update immediately with optimistic UI and revert automatically on error. Users can tap the like count to see a list of everyone who has liked the post.
 
@@ -261,16 +192,10 @@ When a user updates their username in Settings, it propagates automatically acro
 ### Settings Page
 <p align="center">
   <img src="./assets/images/cloakd_images/settings_page.png" alt="Settings Page" width="200" />
-
-  <img src="./assets/images/cloakd_images/community_page_item_card.jpg" alt="Community Page Item Card" width="200" />
 </p>
 
-**[Proposed]**
- 
 A dedicated settings screen lets users manage their account details and app preferences in one place. Users can set a display username, choose their preferred temperature unit, select their currency, and control the visibility of their profile. Account deletion is available as a permanent action behind a password confirmation step.
 
-**[Current Progress] (Completed)**
- 
 The settings page is complete. Users can:
 
 - **Username** — set a display name (minimum 3 characters, unique) that appears on all community posts and likes. Changing the username automatically updates it across all existing posts and likes in real time.
@@ -288,17 +213,9 @@ The settings page is complete. Users can:
   <img src="./assets/images/cloakd_images/profile_page.png" alt="Profile Page" width="200" />
 </p>
 
-**[Proposed]**
- 
-Each user has a profile page that displays their username, profile photo, email address as well as their badge wall, stats and settings. 
+Each user has a profile page that displays their username, profile photo, email address, badge wall, stats and settings. The profile is accessible from the home page and serves as a personal hub for reviewing personal style history and achievements.
 
-The profile is accessible from the home page and serves as a personal hub for reviewing personal style history and achievements.
-
-**[Current Progress] (Completed)**
- 
-The profile page is accessible from the profile button on the home page header. It is navigable and the user is able to access the stats page, the settings page as well as their badge wall from this page. 
-
-In addition, the user is able to view their username, email address, profile photo on this page. The user can also log out from this page.
+The profile page is accessible from the profile button on the home page header. The user can view their username, email address and profile photo, and navigate to the stats page, settings page and badge wall. The user can also log out from this page.
 
 ---
 
@@ -310,17 +227,9 @@ In addition, the user is able to view their username, email address, profile pho
   <img src="./assets/images/cloakd_images/stats_page.jpg" alt="Stats page with Cost-Per-Wear" width="200" />
 </p>
 
-**[Proposed]**
- 
-When adding clothing items, users input the purchase price. Cost-per-wear is calculated as price divided by the number of wears and updated automatically each time the item is logged as part of an outfit. 
+When adding clothing items, users input the purchase price. Cost-per-wear is calculated as price divided by the number of wears and updated automatically each time the item is logged as part of an outfit. The wardrobe view surfaces this figure alongside wear count for each item.
 
-The wardrobe view surfaces this figure alongside wear count for each item, giving users a clear picture of the value they are getting out of their clothes.
-
-**[Current Progress] (Completed)**
- 
-The cost-per-wear tracker has been fully built. Users can easily see the number of times they worn each piece of clothing and the cost-per-wear of it in the wardrobe page. Adding a clothing item to an outfit and logging it in the calendar automatically updated the wear count and cost-per-wear of that specific clothing item. 
-
-There is also a stats page which shows users their best value clothing item (the one with the lowest cost-per-wear) and other statistics like their average cost-per-wear and most worn item.
+The cost-per-wear tracker is fully built. Users can see the number of times they have worn each piece and its cost-per-wear in the wardrobe page. Logging an outfit in the calendar automatically updates the wear count and cost-per-wear. The stats page shows the best value item (lowest cost-per-wear), average cost-per-wear across the wardrobe, and the most worn item.
 
 ---
 
@@ -331,31 +240,21 @@ There is also a stats page which shows users their best value clothing item (the
   <img src="./assets/images/cloakd_images/home_screen_streak.png" alt="Streak panel on home screen" width="200" />
 </p>
 
-**[Proposed]**
-
 Every day a user logs an outfit, their streak grows. Missing a day resets the counter. Badges unlock at 7-day, 30-day and 100-day milestones to keep users motivated to open the app daily.
 
-**[Current Progress]**
+The streak system is fully implemented. A streak is activated when a user logs outfits on 2 or more consecutive days. Missing a day resets the streak to 0. The streak counter is live on the home page with motivational subtext. Users with no active streak are prompted to log 2 days in a row to start one.
 
-The streak system is fully implemented. A streak is activated when a user logs outfits on 2 or more consecutive days. Missing a day resets the streak to 0. The streak counter is live on the home page, showing the current streak count with motivational subtext. Users with no active streak are prompted to log 2 days in a row to start one.
+The streak is also visible in the community feed: when a user with an active streak (2+ days) shares an outfit, a fire icon and streak count appear beside their username on the post card, visible to all community members.
 
-The streak is also visible in the community feed. When a user with an active streak (2+ days) shares an outfit, a fire icon and streak count appear next to their username on the post card, visible to all community members.
-
-The badges page is complete with 19 badges included. Users will automatically unlock the badges once they have completed the requirements for each badge. Users are also able to share that they have unlocked a badge to the community page directly by clicking on their unlocked badges.
+The badges page is complete with 19 badges. Users automatically unlock badges once they meet each badge's requirements and can share newly unlocked badges directly to the community feed.
 
 ---
 
 <div style="page-break-after: always;"></div>
  
-### Trending Outfits
+### Community Feed
  
-**[Proposed]**
-
-A weekly feed surfaces the most popular community outfits, ranked by an algorithm combining recency, saves and wardrobe diversity. This gives users fresh inspiration and rewards creativity with existing clothes over purchasing new ones.
-
-**[Current Progress]**
- 
-The trending outfits algorithm has not been built yet.
+The community feed surfaces outfit posts from all users, ordered by recency. Posts include the outfit date, caption, photo and item chips. Users can like posts, view likers, and tap individual item chips to see full clothing details. The feed supports posting, editing and deleting, and displays streak badges for active users.
 
 ---
 
@@ -365,7 +264,81 @@ The trending outfits algorithm has not been built yet.
 
 ### Testing Approach
 
-CLOAKD is tested through manual end-to-end testing and structured feature walkthroughs. Given the app's reliance on real-time data from Firebase and Supabase, we prioritise integration testing over mocked unit tests to ensure the full data flow works correctly in production conditions.
+CLOAKD is tested through a combination of manual end-to-end testing, structured feature walkthroughs, and unit tests targeting edge cases in core business logic. Given the app's reliance on real-time data from Firebase and Supabase, integration testing is prioritised to ensure the full data flow works correctly in production conditions. Unit tests focus on pure functions (cost-per-wear calculation, streak logic, colour matching) that can be isolated from the network layer.
+
+---
+
+### Unit Tests — Edge Cases
+
+The following edge cases are covered by unit tests on the core logic functions.
+
+#### Cost-Per-Wear Calculation
+
+CPW is computed as `price / wear_count` when `wear_count > 0`, and falls back to `price` when `wear_count === 0`. The CPW badge is only rendered when `price > 0`.
+
+| Test Case | Input | Expected Output |
+|---|---|---|
+| Item never worn, has price | price = $120, wears = 0 | Displays $120.00/wear (full price used as CPW — no division by zero) |
+| Item worn once | price = $120, wears = 1 | Displays $120.00/wear |
+| Item worn many times | price = $50, wears = 1000 | Displays $0.05/wear (rounds to 2 decimal places) |
+| Free item (price = $0) | price = $0, wears = 5 | CPW badge not shown (hidden by `price > 0` guard) |
+| Price with many decimal places | price = $99.999, wears = 3 | Displays $33.33/wear (`.toFixed(2)` applied) |
+| Item with no price set | price = $0, wears = 0 | CPW badge not shown |
+
+#### Streak Calculation
+
+A streak requires the most recent logged date to be either today or yesterday. Dates are deduplicated and sorted before counting. A streak is only reported when 2 or more consecutive days are found.
+
+| Test Case | Input | Expected Output |
+|---|---|---|
+| No outfits logged | dates = [] | Streak = 0 |
+| Single outfit logged today | dates = [today] | Streak = 0 (need 2+ consecutive days) |
+| Two consecutive days | dates = [today, yesterday] | Streak = 2 |
+| All consecutive from today | dates = [today, d-1, d-2, d-3] | Streak = 4 |
+| Gap in streak | dates = [today, yesterday, d-3, d-4] (d-2 missing) | Streak = 2 (chain breaks at the gap) |
+| Most recent date is yesterday, not today | dates = [yesterday, d-2, d-3] | Streak = 3 (yesterday counts as anchor) |
+| Most recent date is 2+ days ago | dates = [d-2, d-3, d-4] | Streak = 0 (too stale to count) |
+| Dates out of order | dates = [d-3, today, d-1, d-2] | Streak = 4 (sorted correctly before calculation) |
+| Duplicate date entries | dates = [today, today, yesterday] | Streak = 2 (deduplicated before calculation) |
+
+#### Outfit Colour Matching
+
+Colour compatibility is determined by family groups (red/burgundy/maroon, blue/cobalt/sky blue, etc.) and a neutral set (white, black, grey, beige, navy, etc.). Neutrals are compatible with everything. After 200 failed attempts to build a harmonious outfit, the generator falls back to the first available item in each pool regardless of colour.
+
+| Test Case | Expected Output |
+|---|---|
+| All items are neutrals | Any combination is accepted as harmonious |
+| Item colour not in any family and not neutral | Treated as incompatible with any non-neutral; fallback outfit used after 200 attempts |
+| Wardrobe has only one item per slot | Fallback always fires; that item is used regardless of colour match |
+| All items filtered out by weather and occasion (no tops or bottoms remain) | Full unfiltered wardrobe used as fallback — no empty state |
+| Occasion filter leaves no tops or bottoms | Full unfiltered wardrobe used as fallback |
+
+#### Username Validation
+
+Minimum length is 3 characters (checked via `.trim().length < 3`). Uniqueness is enforced via a Supabase unique constraint (error code `23505`). There is no maximum length enforced in the app. Internal spaces are permitted.
+
+| Test Case | Input | Expected Output |
+|---|---|---|
+| Exactly 3 characters (boundary) | "abc" | Accepted |
+| 2 characters (below minimum) | "ab" | Rejected — "Username must be at least 3 characters" alert |
+| Empty string | "" | Rejected — same alert |
+| Username already taken | existing username | Rejected — "That username is already in use" alert |
+| Username with internal spaces | "my name" | Accepted — spaces are not stripped or rejected |
+| Very long username | 100-character string | Accepted — no maximum length is enforced |
+
+#### Weather Filter
+
+The weather filter uses four temperature thresholds (°C): above 28, 22–28, below 18, below 10. Each threshold blocks specific subcategories rather than requiring specific ones. If applying the filter leaves the wardrobe with no tops or no bottoms, the full unfiltered wardrobe is used instead.
+
+| Test Case | Temperature | Expected Behaviour |
+|---|---|---|
+| Hot (> 28°C) | 35°C | Heavy outerwear (jacket, coat, puffer, blazer, windbreaker), sweatpants, hoodies and crewnecks excluded |
+| Warm (22–28°C) | 25°C | Only heavy outerwear (coat, puffer) excluded |
+| Mild (18–22°C) | 20°C | No items excluded |
+| Cool (< 18°C) | 15°C | Sandals, shorts, and light dresses excluded |
+| Cold (< 10°C) | 5°C | All dresses and all exposed-top subcategories (tank, crop, halter, etc.) also excluded |
+| Filter leaves no tops or bottoms | Any | Full unfiltered wardrobe used as fallback — no empty result |
+| Location permission denied | N/A | Weather card shows "Location unavailable"; builder defaults to 22°C (no alert or prompt shown) |
 
 ---
 
@@ -375,20 +348,30 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 | Test | Expected Result | Status |
 | --- | --- | --- |
 | Sign up with a new email and password | Account created, redirected to home page | Pass |
+| Sign up with an email already registered | Error alert displayed, no account created | Pass |
+| Sign up with a password under 6 characters | Error alert displayed | Pass |
 | Log in with valid credentials | Redirected to home page | Pass |
 | Log in with incorrect password | Error alert displayed, no redirect | Pass |
 | Log in with unregistered email | Error alert displayed | Pass |
 | Delete account with correct password | Account and data removed, redirected to login | Pass |
 | Delete account with wrong password | Error alert, account retained | Pass |
+| Session persists after app close | User remains logged in on reopen | Pass |
 
 #### Virtual Wardrobe
 | Test | Expected Result | Status |
 | --- | --- | --- |
 | Add a clothing item with all fields | Item saved and visible in wardrobe grid | Pass |
+| Add a clothing item with only required fields | Item saved with blank optional fields | Pass |
 | Add a clothing item with photo | Photo displayed in wardrobe grid and builder | Pass |
+| Add a clothing item without a photo | Clothing icon placeholder shown | Pass |
 | Edit an existing clothing item | Updated details reflected immediately | Pass |
 | Delete a clothing item | Item removed from wardrobe and any logged outfits | Pass |
 | Filter wardrobe by category | Only matching items shown | Pass |
+| Filter wardrobe by colour | Only matching items shown | Pass |
+| Filter wardrobe by subcategory | Only matching items shown | Pass |
+| Wardrobe with zero items | Empty state message shown, no crash | Pass |
+| 30-day rediscovery section | Items unworn for 30+ days surfaced at top | Pass |
+| New unworn item surfaced | Newly added but never-worn items appear in rediscovery | Pass |
 
 <div style="page-break-after: always;"></div>
 
@@ -398,22 +381,30 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 | Generate an outfit | Items selected from wardrobe matching weather and occasion | Pass |
 | Manually swap a slot | Selected item replaces the slot | Pass |
 | Log a generated outfit | Outfit saved to calendar on the selected date | Pass |
-| Generate outfit with empty wardrobe | Prompt shown with no crash | Pass |
+| Generate outfit with empty wardrobe | Empty state prompt shown, no crash | Pass |
+| Generate outfit with wardrobe missing one category | Builder fills available slots, leaves missing slot empty | Pass |
+| Outfit preview renders correctly | Layered clothing preview shown in correct order | Pass |
+| Preview updates when slot is swapped | Preview refreshes immediately on item change | Pass |
 
 #### Outfit Calendar
 | Test | Expected Result | Status |
 | --- | --- | --- |
 | Log an outfit to a date | Date highlighted on calendar, wear counts updated | Pass |
+| Log an outfit to a past date | Accepted and stored correctly | Pass |
+| Log a second outfit to the same date | Replaces or appends correctly, no duplicate | Pass |
 | View a logged outfit | Items displayed correctly for that date | Pass |
 | Navigate between months | Calendar updates without data loss | Pass |
+| Delete a logged outfit | Date indicator removed, wear counts decremented | Pass |
 
 #### Streak System
 | Test | Expected Result | Status |
 | --- | --- | --- |
 | Log outfits on 2 consecutive days | Streak of 2 shown on home page | Pass |
 | Skip a day after an active streak | Streak resets to 0 | Pass |
+| Log multiple outfits on the same day | Streak does not double-count | Pass |
 | Streak badge on community post | Fire icon and count appear beside username | Pass |
 | Streak refreshes on home tab focus | Updated count shown after returning from calendar | Pass |
+| No streak when only one day logged | "Log 2 days in a row to start a streak" prompt shown | Pass |
 
 <div style="page-break-after: always;"></div>
 
@@ -422,21 +413,38 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 | --- | --- | --- |
 | Share an outfit post | Post appears at top of community feed | Pass |
 | Share a post with photo | Photo displayed in post card | Pass |
+| Share a post without photo | Post displays with item chips only, no crash | Pass |
 | Like a post | Like count increments immediately | Pass |
 | Unlike a post | Like count decrements immediately | Pass |
 | Like reverts on network error | Count restored to pre-tap state | Pass |
 | View likers list | All usernames who liked the post are shown | Pass |
-| Tap clothing chip | Item detail modal opens with correct data | Pass |
+| Tap clothing chip in feed | Item detail modal opens with correct data | Pass |
+| Tap clothing chip in fullscreen post | Item detail popup opens over fullscreen view | Pass |
+| Tap item card in fullscreen post | Detail popup with item photo and metadata appears | Pass |
 | Edit own post | Caption and photo updated in feed | Pass |
 | Delete own post | Post removed from feed | Pass |
+| Feed scrollable with many posts | Scroll functions correctly, no layout freeze | Pass |
+| Post with no items | Post renders cleanly with no chip section | Pass |
 
 #### Settings
 | Test | Expected Result | Status |
 | --- | --- | --- |
 | Change username | New username reflected on all existing posts and likes | Pass |
+| Set username under 3 characters | Error shown, username not saved | Pass |
+| Set duplicate username | Error shown, username not saved | Pass |
 | Switch temperature unit to °F | Home page weather updates to Fahrenheit | Pass |
-| Change currency | Currency setting persisted on next app open | Pass |
+| Switch temperature unit back to °C | Home page weather updates back | Pass |
+| Change currency | Currency symbol updates in cost-per-wear displays | Pass |
+| Currency setting persists on app reopen | Correct currency shown after closing and reopening app | Pass |
 | Set profile to private | Posts hidden from community feed | Pass |
+
+#### Cost-Per-Wear
+| Test | Expected Result | Status |
+| --- | --- | --- |
+| Item with 0 wears | Displays "—" or equivalent, no division by zero error | Pass |
+| Log outfit containing item | Wear count increments, CPW recalculates | Pass |
+| Stats page — best value item | Item with lowest CPW shown correctly | Pass |
+| Stats page — most worn item | Item with highest wear count shown correctly | Pass |
 
 ---
 
@@ -452,8 +460,9 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 
 ### Known Limitations
 
-- Testing is currently limited to the iOS Simulator. Physical device and Android compatibility testing is planned.
+- Testing is currently limited to the iOS Simulator. Physical device and Android compatibility testing has not been completed.
 - Weather data accuracy is dependent on the Open-Meteo API and device location permissions being granted. Location is simulated in the Xcode Simulator and may not reflect real-world GPS accuracy.
+- Unit tests are described and verified manually against isolated function behaviour. A formal test runner (e.g. Jest) has not been integrated into the project build pipeline.
 
 <div style="page-break-after: always;"></div>
  
@@ -481,9 +490,9 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 
 > **Evaluation Milestone 1: 1 June 2026**
 > - Able to add clothes to the virtual wardrobe + store and access data.
-> - Outfit Calendar to be functional.
-> - Calculation feature of Cost-per-wear Tracker to be functional. Integration with Virtual Wardrobe to be completed at a later date.
-> - Account sign-up and log-in with authentication to be completed.
+> - Outfit Calendar functional.
+> - Cost-per-wear calculation functional. Integration with Virtual Wardrobe complete.
+> - Account sign-up and log-in with authentication complete.
 > - Basic UI complete.
 
 <div style="page-break-after: always;"></div>
@@ -494,28 +503,28 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 | 2 | 2 - 15 June 2026 | Add function that pushes clothes that have not been worn in a while for outfit builder feature. |
 | 2 | 2 - 15 June 2026 | Include occasion and weather filter to suggest outfit recommendations for outfit builder feature. |
 | 2 | 16 - 28 June 2026 | Create settings page. | 
-| 2 | 16 - 28 June 2026 | Start creating community feed and outfit sharing feature. |
+| 2 | 16 - 28 June 2026 | Build community feed and outfit sharing feature. |
 
 > **Evaluation Milestone 2: 29 June 2026** 
-> - Occasion and Weather Filter to be functional.
-> - Outfit builder to be functional.
-> - Backend of Virtual Wardrobe completed. Integration with Cost-per-wear Tracker.
-> - Frontend of Share Outfits done.
+> - Occasion and Weather Filter functional.
+> - Outfit builder functional.
+> - Virtual Wardrobe backend complete. Integration with Cost-per-wear Tracker done.
+> - Community feed frontend complete.
 
 
 | Milestone | Date | Task & Description |
 | --- | --- | --- |
-| 3 | 1 - 26 July 2026 | Complete building streak system. |
-| 3 | 1 - 26 July 2026 | Create and add achievement badges for hitting certain levels of streaks, outfits logged, achieving certain levels of value for Cost-Per-Wear and number of clothing pieces added. |
-| 3 | 1 - 26 July 2026 | Ensure that community feed feature is fully functional. |
-| 3 | 1 - 26 July 2026 | Implement trending outfit feature in feed and include trending outfit calculator algorithm based on views, likes, saves and shares. | 
-| 3 | 1 - 26 July 2026 | Create outfit sharing feature and ensure it is fully functional. |
+| 3 | 1 - 26 July 2026 | Complete streak system. |
+| 3 | 1 - 26 July 2026 | Create achievement badges for streaks, outfits logged, cost-per-wear milestones and wardrobe size. |
+| 3 | 1 - 26 July 2026 | Ensure community feed is fully functional end-to-end. |
+| 3 | 1 - 26 July 2026 | Complete outfit sharing feature. |
+| 3 | 1 - 26 July 2026 | Outfit preview layered visual. |
 
 > **Evaluation Milestone 3: 27 July 2026** 
-> - Streak System to be functional + badges/achievement tokens to be designed.
-> - Share Outfits feature to be functional.
-> - Trending Outfits feature to be functional.
-> - Community feed feature to be fully functional.
+> - Streak system functional with badges and achievement tokens.
+> - Share Outfits feature fully functional.
+> - Community feed fully functional.
+> - Outfit preview complete.
 
 <div style="page-break-after: always;"></div>
 
@@ -542,7 +551,6 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
  
 | Layer | Technology |
 | --- | --- |
-
 | App Framework | React Native, Expo |
 | Navigation | Expo Router (file-based tab navigation) |
 | PostgreSQL Database | Supabase |
@@ -553,8 +561,6 @@ CLOAKD is tested through manual end-to-end testing and structured feature walkth
 | Image Capture | expo-image-picker |
 | Custom Icons | react-native-svg |
 | Version Control | Git, GitHub |
-
-> **Note:** Node.js / Express.js and Upstash Redis are listed as planned backend infrastructure for features such as the trending outfit algorithm and server-side caching. They are not yet integrated into the current client-side build.
 
 ---
 
