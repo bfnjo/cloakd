@@ -63,8 +63,9 @@ export default function Settings() {
   }, []);
 
   const handleSave = async () => {
-    if (!uid) return;
+    if (!uid) { console.log("blocked: no uid"); return; }
     if (settings.username.trim().length < 3) {
+      console.log("blocked: username too short");
       Alert.alert("Invalid username", "Username must be at least 3 characters.");
       return;
     }

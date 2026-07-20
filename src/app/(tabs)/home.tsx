@@ -82,7 +82,7 @@ export default function Home() {
     const formatted = (data || []).map((log: any) => ({
       id: log.id,
       date: log.date,
-      items: log.outfit_log_items.map((oli: any) => oli.clothing_items),
+      items: log.outfit_log_items.map((oli: any) => oli.clothing_items).filter(Boolean),
     }));
     setRecentOutfits(formatted);
   };
