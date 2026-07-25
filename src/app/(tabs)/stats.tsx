@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Circle, Svg } from "react-native-svg";
 import ClothingIcon from "../../components/ClothingIcon";
 import { auth } from "../../firebaseConfig";
 import { supabase } from "../../supabaseConfig";
@@ -18,10 +19,82 @@ type ClothingItem = {
   image_url: string | null;
 };
 
+const RING_RADIUS = 80;
+const RING_STROKE = 12;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+function getScoreTier(score: number): { colour: string; track: string; tooltip: string } {
+  if (score <= 50) return {
+    colour: "#ff4444",
+    track: "#3a0a0a",
+    tooltip: "You have many unworn clothes, try giving them a chance!",
+  };
+  if (score <= 75) return {
+    colour: "#ffaa00",
+    track: "#2a1a00",
+    tooltip: "You're making use of your wardrobe, but there's room to improve!",
+  };
+  if (score <= 90) return {
+    colour: "#00cc44",
+    track: "#0a2a0a",
+    tooltip: "Great work! Most of your wardrobe is being put to good use.",
+  };
+  return {
+    colour: "#7B7FE8",
+    track: "#1a1a2e",
+    tooltip: "Outstanding! Your wardrobe utilisation is exceptional!",
+  };
+}
+
+function WardrobeScoreRing({ score }: { score: number }) {
+  const tier = getScoreTier(score);
+  const progress = score / 100;
+  const offset = RING_CIRCUMFERENCE * (1 - progress);
+  const size = (RING_RADIUS + RING_STROKE) * 2;
+
+  return (
+    <View style={styles.scoreSection}>
+      <View style={styles.ringWrapper}>
+        <Svg width={size} height={size}>
+          {/* Track */}
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={RING_RADIUS}
+            stroke={tier.track}
+            strokeWidth={RING_STROKE}
+            fill="none"
+          />
+          {/* Progress arc */}
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={RING_RADIUS}
+            stroke={tier.colour}
+            strokeWidth={RING_STROKE}
+            fill="none"
+            strokeDasharray={RING_CIRCUMFERENCE}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            rotation={-90}
+            origin={`${size / 2}, ${size / 2}`}
+          />
+        </Svg>
+        <View style={styles.ringCenter}>
+          <Text style={[styles.ringScore, { color: tier.colour }]}>{score}</Text>
+          <Text style={styles.ringOutOf}>/100</Text>
+        </View>
+      </View>
+      <Text style={[styles.scoreTooltip, { color: tier.colour }]}>{tier.tooltip}</Text>
+    </View>
+  );
+}
+
 export default function Stats() {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [outfitCount, setOutfitCount] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
+  const [utilisationScore, setUtilisationScore] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const ItemThumb = ({ item }: { item: ClothingItem }) => {
@@ -37,24 +110,44 @@ export default function Stats() {
     });
     if (!user) return;
 
-    // Fetch wardrobe
-    const { data: wardrobeData, error: wardrobeError } = await supabase
-      .from("clothing_items")
-      .select("*")
-      .eq("user_id", user.uid);
-    if (wardrobeError) Alert.alert("Error", wardrobeError.message);
-    else setItems(wardrobeData || []);
+    const [
+      { data: wardrobeData, error: wardrobeError },
+      { data: logsData, error: logsError },
+      { data: logsWithItems, error: logsItemsError },
+    ] = await Promise.all([
+      supabase.from("clothing_items").select("*").eq("user_id", user.uid),
+      supabase.from("outfit_logs").select("date").eq("user_id", user.uid).order("date", { ascending: true }),
+      supabase.from("outfit_logs").select("date, outfit_log_items(clothing_item_id)").eq("user_id", user.uid).order("date", { ascending: false }),
+    ]);
 
-    // Fetch outfit logs
-    const { data: logsData, error: logsError } = await supabase
-      .from("outfit_logs")
-      .select("date")
-      .eq("user_id", user.uid)
-      .order("date", { ascending: true });
-    if (logsError) Alert.alert("Error", logsError.message);
-    else {
-      setOutfitCount(logsData?.length || 0);
-      setLongestStreak(calculateLongestStreak(logsData?.map((l: { date: string }) => l.date) || []));
+    if (wardrobeError) { Alert.alert("Error", wardrobeError.message); return; }
+    if (logsError) { Alert.alert("Error", logsError.message); return; }
+
+    const wardrobe: ClothingItem[] = wardrobeData || [];
+    setItems(wardrobe);
+    setOutfitCount(logsData?.length || 0);
+    setLongestStreak(calculateLongestStreak(logsData?.map((l: { date: string }) => l.date) || []));
+
+    // Build last-worn map (same logic as wardrobe page)
+    const lastWornMap: Record<string, string> = {};
+    (logsWithItems || []).forEach((log: any) => {
+      (log.outfit_log_items || []).forEach((oli: any) => {
+        if (!lastWornMap[oli.clothing_item_id]) lastWornMap[oli.clothing_item_id] = log.date;
+      });
+    });
+
+    // Compute utilisation score: % of wardrobe that is NOT forgotten, rounded up
+    if (wardrobe.length > 0) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const notForgotten = wardrobe.filter(item => {
+        const lastWorn = lastWornMap[item.id];
+        if (!lastWorn) return false;
+        return new Date(lastWorn + "T00:00:00") >= thirtyDaysAgo;
+      });
+      setUtilisationScore(Math.min(100, Math.ceil((notForgotten.length / wardrobe.length) * 100)));
+    } else {
+      setUtilisationScore(0);
     }
 
     setLoading(false);
@@ -110,6 +203,10 @@ export default function Stats() {
         <Text style={styles.title}>My Stats</Text>
         <View style={{ width: 60 }} />
       </View>
+
+      {/* Wardrobe Utilisation Score */}
+      <Text style={styles.sectionTitle}>Wardrobe Utilisation Score</Text>
+      <WardrobeScoreRing score={utilisationScore} />
 
       {/* Overview */}
       <Text style={styles.sectionTitle}>Overview</Text>
@@ -208,4 +305,10 @@ const styles = StyleSheet.create({
   wearsBadgeText: { color: "#7B7FE8", fontSize: 13, fontWeight: "bold" },
   emptyCard: { backgroundColor: "#111", borderRadius: 16, padding: 24, marginBottom: 24, borderWidth: 1, borderColor: "#222", alignItems: "center" },
   emptyText: { color: "#888", fontSize: 14 },
+  scoreSection: { alignItems: "center", marginBottom: 24 },
+  ringWrapper: { width: (RING_RADIUS + RING_STROKE) * 2, height: (RING_RADIUS + RING_STROKE) * 2, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  ringCenter: { position: "absolute", alignItems: "center", justifyContent: "center" },
+  ringScore: { fontSize: 40, fontWeight: "bold", lineHeight: 44 },
+  ringOutOf: { fontSize: 13, color: "#555", marginTop: 2 },
+  scoreTooltip: { fontSize: 13, textAlign: "center", paddingHorizontal: 24, lineHeight: 18 },
 });
