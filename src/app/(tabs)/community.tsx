@@ -120,6 +120,7 @@ export default function Community() {
   const [sharing, setSharing] = useState(false);
   const [viewingPost, setViewingPost] = useState<CommunityPost | null>(null);
   const [trendingPosts, setTrendingPosts] = useState<CommunityPost[]>([]);
+  const [privateUserIds, setPrivateUserIds] = useState<Set<string>>(new Set());
 
   const getUser = () =>
     new Promise<any>((resolve) => {
@@ -154,7 +155,7 @@ export default function Community() {
     const now = Date.now();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     const scored = posts
-      .filter((p) => p.post_type !== "badge")
+      .filter((p) => p.post_type !== "badge" && !privateUserIds.has(p.user_id))
       .map((p) => {
         const likeCount = likesMap[p.id]?.count ?? 0;
         const ageMs = now - new Date(p.created_at).getTime();
@@ -199,6 +200,7 @@ export default function Community() {
           (settingsData || []).map((s: any) => [s.firebase_uid, s.profile_visibility ?? "public"])
         );
       }
+      setPrivateUserIds(new Set(Object.entries(visibilityMap).filter(([, v]) => v === "private").map(([uid]) => uid)));
 
       const visiblePosts = (data || []).filter(
         (post: any) => visibilityMap[post.user_id] !== "private" || post.user_id === uid
