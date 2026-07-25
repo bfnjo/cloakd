@@ -204,7 +204,6 @@ The settings page is complete. Users can:
 - **Profile Visibility** — toggle between Public (outfits visible to the community) and Private (outfits visible to the user only).
 - **Delete Account** — permanently deletes the account and all associated wardrobe data after password re-authentication. This action is irreversible.
 
-
 ---
 <div style="page-break-after: always;"></div>
  
@@ -216,6 +215,21 @@ The settings page is complete. Users can:
 Each user has a profile page that displays their username, profile photo, email address, badge wall, stats and settings. The profile is accessible from the home page and serves as a personal hub for reviewing personal style history and achievements.
 
 The profile page is accessible from the profile button on the home page header. The user can view their username, email address and profile photo, and navigate to the stats page, settings page and badge wall. The user can also log out from this page.
+
+---
+
+
+<div style="page-break-after: always;"></div>
+
+### Statistics Page
+
+Users can view their account statistics on the statistics page. It contains figures such as their Wardrobe Utilisation Score, total number of items owned and outfits logged, longest streak, total wardrobe value, average cost-per-wear for all the clothing items in their wardrobe, as well as their best value and most worn items.
+
+For the wardrobe utilisation score, CLOAKD calculates a score from 0 to 100 to show how much of your wardrobe you are actually using. For each piece of clothing, the most recent wear date is determined based on the outfits users have logged. If an item has been worn in the last 30 days, it is tagged as "not forgotten" and the score is then calculated using the formula (number of not forgotten items / total number of items) * 100. Scores are then grouped under 4 categories, red (0 to 50), yellow (51 to 75), green (76 to 90) and blue (91 to 100). This helps to show users how well they are using all the clothes in their wardrobe as a whole and helps to encourage them to use forgotten pieces more.
+
+Users can also see their total wardrobe value and the total number of clothing items they own if they are interested to see how much they have spent on their wardrobe as a whole.
+
+The average cost-per-wear figure shows the average cost-per-wear of all the clothing items in a user's wardrobe and also helps to encourage them to wear their clothing items more and log outfits to get better value out of the clothing items they already own.
 
 ---
 
