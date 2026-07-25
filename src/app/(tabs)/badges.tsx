@@ -25,6 +25,21 @@ type Badge = {
   progressText: string;
 };
 
+function computeScoreAsOf(refDate: Date, itemIds: string[], wearDatesMap: Record<string, string[]>): number {
+  if (itemIds.length === 0) return 0;
+  const thirtyDaysBefore = new Date(refDate);
+  thirtyDaysBefore.setDate(thirtyDaysBefore.getDate() - 30);
+  const notForgotten = itemIds.filter((id) => {
+    const dates = wearDatesMap[id];
+    if (!dates || dates.length === 0) return false;
+    const validDates = dates.filter((d) => new Date(d + "T00:00:00") <= refDate);
+    if (validDates.length === 0) return false;
+    const mostRecent = validDates[validDates.length - 1];
+    return new Date(mostRecent + "T00:00:00") >= thirtyDaysBefore;
+  });
+  return Math.min(100, Math.ceil((notForgotten.length / itemIds.length) * 100));
+}
+
 export default function BadgeWall() {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [outfitCount, setOutfitCount] = useState(0);
@@ -37,6 +52,9 @@ export default function BadgeWall() {
   const [hasFanFavourite, setHasFanFavourite] = useState(false);
   const [hasEarlyAdopter, setHasEarlyAdopter] = useState(false);
   const [accountAgeDays, setAccountAgeDays] = useState(0);
+  const [utilisationScore, setUtilisationScore] = useState(0);
+  const [utilisationScoreLastMonth, setUtilisationScoreLastMonth] = useState(0);
+  const [utilisationScoreTwoMonthsAgo, setUtilisationScoreTwoMonthsAgo] = useState(0);
   const [earnedIds, setEarnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -87,6 +105,32 @@ export default function BadgeWall() {
     const currentStreak = calculateLongestStreak(dates);
     setOutfitCount(currentOutfitCount);
     setLongestStreak(currentStreak);
+
+    // Fetch all outfit log items to build wear dates map (for utilisation score)
+    const { data: logsWithItemsData } = await supabase
+      .from("outfit_logs")
+      .select("date, outfit_log_items(clothing_item_id)")
+      .eq("user_id", user.uid)
+      .order("date", { ascending: true });
+    const wearDatesMap: Record<string, string[]> = {};
+    (logsWithItemsData || []).forEach((log: any) => {
+      (log.outfit_log_items || []).forEach((oli: any) => {
+        if (!wearDatesMap[oli.clothing_item_id]) wearDatesMap[oli.clothing_item_id] = [];
+        if (!wearDatesMap[oli.clothing_item_id].includes(log.date)) {
+          wearDatesMap[oli.clothing_item_id].push(log.date);
+        }
+      });
+    });
+    const itemIds = currentItems.map((i) => i.id);
+    const today = new Date();
+    const oneMonthAgo = new Date(); oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const twoMonthsAgo = new Date(); twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+    const currentUtilScore = computeScoreAsOf(today, itemIds, wearDatesMap);
+    const lastMonthScore = computeScoreAsOf(oneMonthAgo, itemIds, wearDatesMap);
+    const twoMonthsAgoScore = computeScoreAsOf(twoMonthsAgo, itemIds, wearDatesMap);
+    setUtilisationScore(currentUtilScore);
+    setUtilisationScoreLastMonth(lastMonthScore);
+    setUtilisationScoreTwoMonthsAgo(twoMonthsAgoScore);
 
     // Account age (for Anniversary badges)
     const creationTime = user.metadata?.creationTime;
@@ -205,6 +249,17 @@ export default function BadgeWall() {
       { id: "anniversary-1", met: currentAccountAgeDays >= 365 },
       { id: "anniversary-5", met: currentAccountAgeDays >= 365 * 5 },
       { id: "anniversary-10", met: currentAccountAgeDays >= 365 * 10 },
+      // Wardrobe Utilisation — Milestone
+      { id: "util-awakened", met: currentUtilScore >= 50 },
+      { id: "util-aware", met: currentUtilScore >= 75 },
+      { id: "util-full-rotation", met: currentUtilScore >= 90 },
+      { id: "util-maximalist", met: currentUtilScore >= 100 },
+      // Wardrobe Utilisation — Improvement
+      { id: "util-comeback", met: currentUtilScore - lastMonthScore >= 20 },
+      { id: "util-rising", met: currentUtilScore > lastMonthScore && lastMonthScore > twoMonthsAgoScore },
+      // Wardrobe Utilisation — Consistency
+      { id: "util-steady-75", met: currentUtilScore >= 75 && currentAccountAgeDays >= 30 },
+      { id: "util-steady-90", met: currentUtilScore >= 90 && currentAccountAgeDays >= 30 },
     ];
 
     const newlyEarned = conditions.filter((c) => c.met && !earnedSet.has(c.id));
@@ -340,6 +395,31 @@ export default function BadgeWall() {
       badges: [
         buildBadge("investment-piece", "💼", "Investment Piece", "Add an item worth over $200",
           hasInvestmentPiece ? 1 : 0, hasInvestmentPiece ? "Unlocked" : "Add a luxury item"),
+      ],
+    },
+    {
+      title: "Wardrobe Utilisation",
+      badges: [
+        buildBadge("util-awakened", "🌱", "Awakened", "Reach a utilisation score of 50 or above",
+          clamp(utilisationScore / 50), `${Math.min(utilisationScore, 50)}/50 score`),
+        buildBadge("util-aware", "👁️", "Wardrobe Aware", "Reach a utilisation score of 75 or above",
+          clamp(utilisationScore / 75), `${Math.min(utilisationScore, 75)}/75 score`),
+        buildBadge("util-full-rotation", "🔄", "Full Rotation", "Reach a utilisation score of 90 or above",
+          clamp(utilisationScore / 90), `${Math.min(utilisationScore, 90)}/90 score`),
+        buildBadge("util-maximalist", "💯", "Maximalist", "Achieve a perfect utilisation score of 100",
+          clamp(utilisationScore / 100), `${utilisationScore}/100 score`),
+        buildBadge("util-comeback", "📈", "Comeback", "Improve your utilisation score by 20+ points in one month",
+          clamp(Math.max(0, utilisationScore - utilisationScoreLastMonth) / 20),
+          `+${Math.max(0, utilisationScore - utilisationScoreLastMonth)}/20 pts`),
+        buildBadge("util-rising", "🚀", "Rising Tide", "Improve your utilisation score for 2 consecutive months",
+          utilisationScore > utilisationScoreLastMonth && utilisationScoreLastMonth > utilisationScoreTwoMonthsAgo ? 1
+            : utilisationScore > utilisationScoreLastMonth ? 0.5 : 0,
+          utilisationScore > utilisationScoreLastMonth && utilisationScoreLastMonth > utilisationScoreTwoMonthsAgo ? "Unlocked"
+            : utilisationScore > utilisationScoreLastMonth ? "1/2 months improving" : "0/2 months improving"),
+        buildBadge("util-steady-75", "🏅", "Well Dressed, Well Used", "Maintain a utilisation score of 75+ for 30+ days",
+          clamp(utilisationScore / 75), `${Math.min(utilisationScore, 75)}/75 score`),
+        buildBadge("util-steady-90", "🎖️", "No Piece Left Behind", "Maintain a utilisation score of 90+ for 30+ days",
+          clamp(utilisationScore / 90), `${Math.min(utilisationScore, 90)}/90 score`),
       ],
     },
     {

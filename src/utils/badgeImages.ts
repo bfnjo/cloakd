@@ -18,4 +18,13 @@ export const BADGE_IMAGES: Record<string, any> = {
   "likes-10": require("../../assets/images/cloakd_images/cloakd_badges/likes-10.png"),
   "likes-100": require("../../assets/images/cloakd_images/cloakd_badges/likes-100.png"),
   "likes-1000": require("../../assets/images/cloakd_images/cloakd_badges/likes-1000.png"),
+  // Wardrobe Utilisation — placeholder images until custom assets are designed
+  "util-awakened":      require("../../assets/images/cloakd_images/cloakd_badges/outfits-1.png"),
+  "util-aware":         require("../../assets/images/cloakd_images/cloakd_badges/outfits-10.png"),
+  "util-full-rotation": require("../../assets/images/cloakd_images/cloakd_badges/outfits-100.png"),
+  "util-maximalist":    require("../../assets/images/cloakd_images/cloakd_badges/streak-100.png"),
+  "util-comeback":      require("../../assets/images/cloakd_images/cloakd_badges/cpw-5.png"),
+  "util-rising":        require("../../assets/images/cloakd_images/cloakd_badges/cpw-1.png"),
+  "util-steady-75":     require("../../assets/images/cloakd_images/cloakd_badges/streak-7.png"),
+  "util-steady-90":     require("../../assets/images/cloakd_images/cloakd_badges/streak-30.png"),
 };
