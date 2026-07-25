@@ -169,7 +169,7 @@ export default function Community() {
       .slice(0, 10)
       .map((s) => s.post);
     setTrendingPosts(scored);
-  }, [posts, likesMap]);
+  }, [posts, likesMap, privateUserIds]);
 
   const fetchFeed = async () => {
     setLoadingFeed(true);
