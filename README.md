@@ -222,6 +222,9 @@ The profile page is accessible from the profile button on the home page header. 
 <div style="page-break-after: always;"></div>
 
 ### Statistics Page
+<p align="center">
+  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Statistics page showing Wardrobe Utilisation Score" width="200" />
+</p>
 
 Users can view their account statistics on the statistics page. It contains figures such as their Wardrobe Utilisation Score, total number of items owned and outfits logged, longest streak, total wardrobe value, average cost-per-wear for all the clothing items in their wardrobe, as well as their best value and most worn items.
 
