@@ -277,6 +277,34 @@ The community feed surfaces outfit posts from all users, ordered by recency. Pos
 
 <div style="page-break-after: always;"></div>
 
+## Wardrobe Utilisation Score
+<p align="center">
+  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Wardrobe Utilisation Score" width="200" />
+</p>
+
+The wardrobe utilisation score gives users a single number that answers the question: how much of what you own are you actually wearing? It sits at the top of the Stats page with its own dedicated header and acts as the headline metric for wardrobe health.
+
+The score is calculated as the percentage of wardrobe items that are **not forgotten**, rounded up to the nearest whole number, capped at 100. An item is considered forgotten if it has never been worn, or if its most recent wear was more than 30 days ago — the same definition used by the wardrobe rediscovery section.
+
+> Score = ⌈ (items worn in the last 30 days ÷ total items) × 100 ⌉, capped at 100
+
+The score updates automatically whenever an outfit is logged or an item is added or deleted, since both events change either the numerator (items with a recent wear) or the denominator (total items).
+
+The score and its progress ring are colour-coded by tier:
+
+| Score Range | Colour | Tooltip |
+| --- | --- | --- |
+| 0 – 50 | Red | "You have many unworn clothes, try giving them a chance!" |
+| 51 – 75 | Yellow | "You're making use of your wardrobe, but there's room to improve!" |
+| 76 – 90 | Green | "Great work! Most of your wardrobe is being put to good use." |
+| 91 – 100 | Purple | "Outstanding! Your wardrobe utilisation is exceptional!" |
+
+The UI renders the score inside a circular progress ring drawn with `react-native-svg`. The ring arc is filled proportionally to the score (0 = empty, 100 = full circle). Both the arc and the central score label change colour together according to the active tier.
+
+---
+
+<div style="page-break-after: always;"></div>
+
 ## Testing
 
 ### Testing Approach
