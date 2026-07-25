@@ -844,12 +844,16 @@ export default function Community() {
             {selectedClothingItem && (
               <>
                 <View style={styles.clothingIconLarge}>
-                  <ClothingIcon
-                    category={selectedClothingItem.category}
-                    subcategory={selectedClothingItem.subcategory}
-                    size={80}
-                    colour={selectedClothingItem.colour}
-                  />
+                  {selectedClothingItem.image_url ? (
+                    <Image source={{ uri: selectedClothingItem.image_url }} style={styles.clothingDetailPhoto} resizeMode="contain" />
+                  ) : (
+                    <ClothingIcon
+                      category={selectedClothingItem.category}
+                      subcategory={selectedClothingItem.subcategory}
+                      size={80}
+                      colour={selectedClothingItem.colour}
+                    />
+                  )}
                 </View>
                 <Text style={styles.clothingDetailName}>{selectedClothingItem.name}</Text>
                 <View style={styles.clothingDetailRows}>

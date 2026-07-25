@@ -223,12 +223,10 @@ The profile page is accessible from the profile button on the home page header. 
 
 ### Statistics Page
 <p align="center">
-  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Statistics page showing Wardrobe Utilisation Score" width="200" />
+  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Statistics Page" width="200" />
 </p>
 
 Users can view their account statistics on the statistics page. It contains figures such as their Wardrobe Utilisation Score, total number of items owned and outfits logged, longest streak, total wardrobe value, average cost-per-wear for all the clothing items in their wardrobe, as well as their best value and most worn items.
-
-For the wardrobe utilisation score, CLOAKD calculates a score from 0 to 100 to show how much of your wardrobe you are actually using. For each piece of clothing, the most recent wear date is determined based on the outfits users have logged. If an item has been worn in the last 30 days, it is tagged as "not forgotten" and the score is then calculated using the formula (number of not forgotten items / total number of items) * 100. Scores are then grouped under 4 categories, red (0 to 50), yellow (51 to 75), green (76 to 90) and blue (91 to 100). This helps to show users how well they are using all the clothes in their wardrobe as a whole and helps to encourage them to use forgotten pieces more.
 
 Users can also see their total wardrobe value and the total number of clothing items they own if they are interested to see how much they have spent on their wardrobe as a whole.
 
