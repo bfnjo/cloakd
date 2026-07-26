@@ -175,6 +175,8 @@ The calendar can be navigated by month. Logging an outfit to a date is functiona
   <img src="./assets/images/cloakd_images/community_page.jpg" alt="Community Page" width="200" />
 
   <img src="./assets/images/cloakd_images/community_page_item_card.jpg" alt="Community Page Item Card" width="200" />
+
+  <img src="./assets/images/cloakd_images/community_page_trending_outfits.jpg" alt="Community Page Trending Outfits" width="200" />
 </p>
  
 Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default — a user's wardrobe stays invisible unless they choose to share. Shared posts display garment categories, colours and item photos. Other users can like posts and view who else has liked them.
