@@ -277,7 +277,7 @@ The community feed surfaces outfit posts from all users, ordered by recency. Pos
 
 <div style="page-break-after: always;"></div>
 
-## Wardrobe Utilisation Score
+### Wardrobe Utilisation Score
 <p align="center">
   <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Wardrobe Utilisation Score" width="200" />
 </p>
@@ -300,6 +300,21 @@ The score and its progress ring are colour-coded by tier:
 | 91 – 100 | Purple | "Outstanding! Your wardrobe utilisation is exceptional!" |
 
 The UI renders the score inside a circular progress ring drawn with `react-native-svg`. The ring arc is filled proportionally to the score (0 = empty, 100 = full circle). Both the arc and the central score label change colour together according to the active tier.
+
+---
+
+<div style="page-break-after: always;"></div>
+
+### Trending Outfits
+<p align="center">
+  <img src="./assets/images/cloakd_images/community_page_trending_outfits.png" alt="Trending Outfits" width="200" />
+</p>
+
+On the community feed page, users share their outfits and like other users' shared outfits. A horizontal scroll section has been created at the top of the community feed page to showcase the trending outfits of the week. The formula to calculate the most trending outfits is likeCount / (ageInHours + 2)^1.5 and it helps to ensure that a new post with fewer likes can outrank an older post with more likes, keeping the section feeling more current and up to date with trends rather than just all-time popular outfits.
+
+Only outfit posts within the last 7 days with at least one like are eligible to be featured in this section and only the top 10 outfits by score will be showcased. The score is automatically recomputed and the outfits are updated whenever posts or like counts change.
+
+If a user has set their account to private, their outfits will not be featured in this section even if they are less than 7 days old and have at least one like.
 
 ---
 
