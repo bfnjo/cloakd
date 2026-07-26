@@ -13,6 +13,44 @@
 ---
 
 <div style="page-break-after: always;"></div>
+
+## Table of Contents
+
+- [Motivation](#motivation)
+- [Vision](#vision)
+- [User Stories](#user-stories)
+- [Scope of Project](#scope-of-project)
+- [Proof of Concept](#proof-of-concept)
+- [Features](#features)
+  - [User Account Authentication](#user-account-authentication)
+  - [Virtual Wardrobe](#virtual-wardrobe)
+  - [Outfit Builder](#outfit-builder)
+  - [Occasion and Weather Filter](#occasion-and-weather-filter)
+  - [Outfit Calendar](#outfit-calendar)
+  - [Share Outfits and Community Feed](#share-outfits-and-community-feed)
+  - [Settings Page](#settings-page)
+  - [Profile Page](#profile-page)
+  - [Statistics Page](#statistics-page)
+  - [Cost-Per-Wear Tracker](#cost-per-wear-tracker)
+  - [Streak System](#streak-system)
+  - [Wardrobe Utilisation Score](#wardrobe-utilisation-score)
+  - [Trending Outfits](#trending-outfits)
+- [Testing](#testing)
+  - [Testing Approach](#testing-approach)
+  - [Unit Tests Edge Cases](#unit-tests-edge-cases)
+  - [Manual Test Cases](#manual-test-cases)
+  - [Devices Tested](#devices-tested)
+  - [Known Limitations](#known-limitations)
+- [Timeline and Development Plan](#timeline-and-development-plan)
+- [Database Schema](#database-schema)
+- [Tech Stack](#tech-stack)
+- [Project Log](#project-log)
+- [Project Video](#project-video)
+- [Project Poster](#project-poster)
+
+---
+
+<div style="page-break-after: always;"></div>
  
 ## Motivation
  
@@ -57,6 +95,12 @@ Ultimately, we envision CLOAKD as the app people reach for every morning, the on
 
 <div style="page-break-after: always;"></div>
 
+## Scope of Project
+ 
+CLOAKD is a mobile app that lets users photograph and catalogue every clothing item they own, then suggests daily outfits built entirely from their existing wardrobe — filtered by real-time weather and occasion. Users log outfits to a calendar, track cost-per-wear statistics, build daily streaks, earn achievement badges, and optionally share looks to a community feed.
+
+---
+
 ## Proof of Concept
 <p align="center">
   <img src="./assets/images/cloakd_images/login_page.jpg" alt="Login Page" width="150" />
@@ -82,15 +126,13 @@ Ultimately, we envision CLOAKD as the app people reach for every morning, the on
   <img src="./assets/images/cloakd_images/profile_page.png" alt="Profile Page" width="150" />
 
   <img src="./assets/images/cloakd_images/stats_page.jpg" alt="Stats page with Cost-Per-Wear" width="150" />
+
+  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Statistics Page" width="150" />
+
+  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Wardrobe Utilisation Score" width="150" />
+
+  <img src="./assets/images/cloakd_images/community_page_trending_outfits.png" alt="Trending Outfits" width="150" />
 </p>
-
----
-
-<div style="page-break-after: always;"></div>
- 
-## Scope of Project
- 
-CLOAKD is a mobile app that lets users photograph and catalogue every clothing item they own, then suggests daily outfits built entirely from their existing wardrobe — filtered by real-time weather and occasion. Users log outfits to a calendar, track cost-per-wear statistics, build daily streaks, earn achievement badges, and optionally share looks to a community feed.
 
 ---
 
@@ -170,13 +212,13 @@ The calendar can be navigated by month. Logging an outfit to a date is functiona
 
 <div style="page-break-after: always;"></div>
  
-### Share Outfits
+### Share Outfits and Community Feed
 <p align="center">
   <img src="./assets/images/cloakd_images/community_page.jpg" alt="Community Page" width="200" />
 
   <img src="./assets/images/cloakd_images/community_page_item_card.jpg" alt="Community Page Item Card" width="200" />
 
-  <img src="./assets/images/cloakd_images/community_page_trending_outfits.jpg" alt="Community Page Trending Outfits" width="200" />
+  <img src="./assets/images/cloakd_images/community_page_trending_outfits.png" alt="Community Page Trending Outfits" width="200" />
 </p>
  
 Users can opt in to post outfits to the CLOAKD community feed. Privacy is the default — a user's wardrobe stays invisible unless they choose to share. Shared posts display garment categories, colours and item photos. Other users can like posts and view who else has liked them.
@@ -263,15 +305,63 @@ The streak system is fully implemented. A streak is activated when a user logs o
 
 The streak is also visible in the community feed: when a user with an active streak (2+ days) shares an outfit, a fire icon and streak count appear beside their username on the post card, visible to all community members.
 
-The badges page is complete with 19 badges. Users automatically unlock badges once they meet each badge's requirements and can share newly unlocked badges directly to the community feed.
-
 ---
 
 <div style="page-break-after: always;"></div>
- 
-### Community Feed
- 
-The community feed surfaces outfit posts from all users, ordered by recency. Posts include the outfit date, caption, photo and item chips. Users can like posts, view likers, and tap individual item chips to see full clothing details. The feed supports posting, editing and deleting, and displays streak badges for active users.
+
+### Badge Wall
+
+<p align="center">
+  <img src="./assets/images/cloakd_images/cloakd_badges/streak-100.png" alt="Unkillable Habit badge" width="90" />
+  <img src="./assets/images/cloakd_images/cloakd_badges/cpw-1.png" alt="Basically Free badge" width="90" />
+  <img src="./assets/images/cloakd_images/cloakd_badges/items-50.png" alt="Stacked Inventory badge" width="90" />
+  <img src="./assets/images/cloakd_images/cloakd_badges/likes-100.png" alt="Pinterest Wall badge" width="90" />
+  <img src="./assets/images/cloakd_images/cloakd_badges/maximalist.png" alt="Maximalist badge" width="90" />
+  <img src="./assets/images/cloakd_images/cloakd_badges/anniversary-10.png" alt="CLOAKD GOAT badge" width="90" />
+</p>
+
+
+The badges page is complete with 36 badges. Users automatically unlock badges once they meet each badge's requirements and can share newly unlocked badges directly to the community feed.CLOAKD's badge system rewards users for consistent engagement across every core feature, such as logging streaks, tracking cost-per-wear, growing their wardrobe and being active in the community. Badges are organised into 11 categories, with progression tiers representing increasing milestones within each category. Progress bars on each badge card show real-time completion, and badges are automatically unlocked and persisted once their condition is met.
+
+
+| Category | Badge | Tier | Unlock Requirement |
+| --- | --- | --- | --- |
+| Getting Started | Welcome to Cloakd | Bronze | Create an account |
+| Getting Started | Early Adopter | Bronze | Log an outfit within your first week |
+| Getting Started | First Post | Bronze | Share your first outfit to the community |
+| Streaks | Warming Up | Bronze | Reach a 7-day streak |
+| Streaks | In Rotation | Silver | Reach a 30-day streak |
+| Streaks | Unkillable Habit | Gold | Reach a 100-day streak |
+| Cost-Per-Wear | Getting Your Money's Worth | Bronze | An item's cost-per-wear drops under $5 |
+| Cost-Per-Wear | Basically Free | Gold | An item's cost-per-wear drops under $1 |
+| Wardrobe Size | Just Getting Started | Bronze | Log 10 wardrobe items |
+| Wardrobe Size | Building the Archive | Silver | Log 25 wardrobe items |
+| Wardrobe Size | Stacked Inventory | Gold | Log 50 wardrobe items |
+| Outfits Logged | One Day or Day One | Bronze | Log 1 outfit |
+| Outfits Logged | Creature of Habit (the good kind) | Silver | Log 10 outfits |
+| Outfits Logged | Century Club | Gold | Log 100 outfits |
+| Community | Conversation Starter | Bronze | Get 3 likes on a single outfit post |
+| Community | Getting There | Silver | Get 10 likes on a single outfit post |
+| Community | Fashionista | Gold | Get 40 likes on a single outfit post |
+| Community | Pinterest Wall | Diamond | Get 100 likes on a single outfit post |
+| Community | Fan Favourite | Silver | Have the same user like 5 of your posts |
+| Style Diversity | Rainbow Dresser | Silver | Wear 5 different colours in one week |
+| Style Diversity | Brand Hopper | Silver | Wear 5 different brands in one week |
+| Outfit Recycler | Old Faithful | Bronze | Wear the same item 10 times |
+| Outfit Recycler | Wardrobe Warrior | Gold | Wear the same item 50 times |
+| Outfit Recycler | Vintage Lover | Silver | Log an item that's been in your wardrobe for 1+ year |
+| Wardrobe Health | Investment Piece | Silver | Add an item worth $200 or more |
+| Wardrobe Utilisation | Awakened | Bronze | Reach a utilisation score of 50+ |
+| Wardrobe Utilisation | Wardrobe Aware | Silver | Reach a utilisation score of 75+ |
+| Wardrobe Utilisation | Full Rotation | Gold | Reach a utilisation score of 90+ |
+| Wardrobe Utilisation | Maximalist | Diamond | Reach a perfect utilisation score of 100 |
+| Wardrobe Utilisation | Comeback | Silver | Improve utilisation score by 20+ points in one month |
+| Wardrobe Utilisation | Rising Tide | Silver | Improve utilisation score for 2 consecutive months |
+| Wardrobe Utilisation | Well Dressed, Well Used | Gold | Maintain a utilisation score of 75+ for 30+ days |
+| Wardrobe Utilisation | No Piece Left Behind | Diamond | Maintain a utilisation score of 90+ for 30+ days |
+| Anniversary | First CLOAKDaversary | Bronze | 1 year since account creation |
+| Anniversary | CLOAKD Legend | Silver | 5 years since account creation |
+| Anniversary | CLOAKD GOAT | Gold | 10 years since account creation |
 
 ---
 
@@ -279,7 +369,7 @@ The community feed surfaces outfit posts from all users, ordered by recency. Pos
 
 ### Wardrobe Utilisation Score
 <p align="center">
-  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Wardrobe Utilisation Score" width="200" />
+  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Wardrobe Utilisation Score" width="180" />
 </p>
 
 The wardrobe utilisation score gives users a single number that answers the question: how much of what you own are you actually wearing? It sits at the top of the Stats page with its own dedicated header and acts as the headline metric for wardrobe health.
@@ -328,7 +418,7 @@ CLOAKD is tested through a combination of manual end-to-end testing, structured 
 
 ---
 
-### Unit Tests — Edge Cases
+### Unit Tests Edge Cases
 
 The following edge cases are covered by unit tests on the core logic functions.
 
@@ -344,6 +434,8 @@ CPW is computed as `price / wear_count` when `wear_count > 0`, and falls back to
 | Free item (price = $0) | price = $0, wears = 5 | CPW badge not shown (hidden by `price > 0` guard) |
 | Price with many decimal places | price = $99.999, wears = 3 | Displays $33.33/wear (`.toFixed(2)` applied) |
 | Item with no price set | price = $0, wears = 0 | CPW badge not shown |
+
+<div style="page-break-after: always;"></div>
 
 #### Streak Calculation
 
@@ -373,6 +465,8 @@ Colour compatibility is determined by family groups (red/burgundy/maroon, blue/c
 | All items filtered out by weather and occasion (no tops or bottoms remain) | Full unfiltered wardrobe used as fallback — no empty state |
 | Occasion filter leaves no tops or bottoms | Full unfiltered wardrobe used as fallback |
 
+<div style="page-break-after: always;"></div>
+
 #### Username Validation
 
 Minimum length is 3 characters (checked via `.trim().length < 3`). Uniqueness is enforced via a Supabase unique constraint (error code `23505`). There is no maximum length enforced in the app. Internal spaces are permitted.
@@ -401,6 +495,8 @@ The weather filter uses four temperature thresholds (°C): above 28, 22–28, be
 | Location permission denied | N/A | Weather card shows "Location unavailable"; builder defaults to 22°C (no alert or prompt shown) |
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ### Manual Test Cases
 
@@ -497,6 +593,8 @@ The weather filter uses four temperature thresholds (°C): above 28, 22–28, be
 | Change currency | Currency symbol updates in cost-per-wear displays | Pass |
 | Currency setting persists on app reopen | Correct currency shown after closing and reopening app | Pass |
 | Set profile to private | Posts hidden from community feed | Pass |
+
+<div style="page-break-after: always;"></div>
 
 #### Cost-Per-Wear
 | Test | Expected Result | Status |
