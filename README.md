@@ -129,8 +129,6 @@ CLOAKD is a mobile app that lets users photograph and catalogue every clothing i
 
   <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Statistics Page" width="150" />
 
-  <img src="./assets/images/cloakd_images/wardrobe-util-score.png" alt="Wardrobe Utilisation Score" width="150" />
-
   <img src="./assets/images/cloakd_images/community_page_trending_outfits.png" alt="Trending Outfits" width="150" />
 </p>
 
