@@ -494,7 +494,9 @@ export default function BadgeWall() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
       <View style={styles.header}>
-        <Text style={styles.backText} onPress={() => router.back()}>← Back</Text>
+        <TouchableOpacity onPress={() => router.replace("/(tabs)/profile")}>
+          <Text style={styles.backButton}>← Back</Text>
+        </TouchableOpacity>
         <Text style={styles.title}>Badges</Text>
         <View style={{ width: 60 }} />
       </View>
@@ -589,7 +591,7 @@ export default function BadgeWall() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000", paddingHorizontal: 24, paddingTop: 60 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-  backText: { color: "#7B7FE8", fontSize: 16 },
+  backButton: { color: "#7B7FE8", fontSize: 16 },
   title: { fontSize: 20, fontWeight: "bold", color: "#fff" },
   highlightCard: { backgroundColor: "#1a1a2e", borderRadius: 16, padding: 20, marginBottom: 24, borderWidth: 1, borderColor: "#7B7FE833", alignItems: "center" },
   highlightLabel: { fontSize: 12, color: "#888", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 },
