@@ -1005,7 +1005,7 @@ export default function Community() {
             </ScrollView>
           )}
 
-          {/* Item detail popup — rendered as sibling inside the fullscreen overlay so it appears on top */}
+          {/* Item detail popup - rendered as sibling inside the fullscreen overlay so it appears on top */}
           {selectedClothingItem && (
             <TouchableOpacity
               style={styles.badgeDetailOverlay}
@@ -1068,7 +1068,7 @@ export default function Community() {
             </TouchableOpacity>
           )}
 
-          {/* Badge detail popup — rendered as sibling inside the fullscreen overlay so it appears on top */}
+          {/* Badge detail popup - rendered as sibling inside the fullscreen overlay so it appears on top */}
           {badgeDetailPost && (
             <TouchableOpacity
               style={styles.badgeDetailOverlay}

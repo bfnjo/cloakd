@@ -51,10 +51,7 @@ function FunnelIcon({ color = "#888", size = 16 }: { color?: string; size?: numb
   );
 }
 
-// ─── Forgotten Pieces Section ────────────────────────────────────────────────
-// Displays clothing items not worn in 30+ days.
-// onItemPress is intentionally optional — wire it up when the outfit builder
-// is ready to accept pre-filled items (e.g. navigate to builder with item id).
+//Forgotten Pieces Section
 
 type ForgottenPiecesSectionProps = {
   items: ClothingItem[];
@@ -159,7 +156,7 @@ export default function Wardrobe() {
 
     if (error) { console.log("Fetch error:", error.message); return; }
 
-    // Build last-worn map: item id → most recent wear date string
+    // Build last-worn map: item id -> most recent wear date string
     const wornMap: Record<string, string> = {};
     (logsData || []).forEach((log: any) => {
       (log.outfit_log_items || []).forEach((oli: any) => {
@@ -180,7 +177,7 @@ export default function Wardrobe() {
     }, [])
   );
 
-  // ── Image capture ────────────────────────────────────────────────────────────
+  //Image capture
 
   async function pickImage(source: "camera" | "library") {
     const permResult = source === "camera"
@@ -241,7 +238,7 @@ export default function Wardrobe() {
     }
   }
 
-  // ── CRUD ─────────────────────────────────────────────────────────────────────
+  //CRUD
 
   const handleAddItem = async () => {
     const user = auth.currentUser;
@@ -380,7 +377,7 @@ export default function Wardrobe() {
     return { color: "#ff4444", background: "#1a0000", border: "#ff000033" };
   };
 
-  // ── Image picker UI (shared between add & edit modals) ────────────────────
+  //Image picker UI (shared between add & edit modals)
 
   const ImagePickerSection = ({ existingUrl }: { existingUrl?: string | null }) => {
     const preview = pendingImageUri || existingUrl;
@@ -417,7 +414,7 @@ export default function Wardrobe() {
     );
   };
 
-  // ── Item card image/icon ───────────────────────────────────────────────────
+  //Item card image/icon
 
   const ItemImage = ({ item }: { item: ClothingItem }) => {
     if (item.image_url) {
@@ -439,7 +436,7 @@ export default function Wardrobe() {
     );
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  //Render
 
   return (
     <View style={styles.container}>
@@ -470,7 +467,7 @@ export default function Wardrobe() {
       </ScrollView>
 
       <ScrollView style={styles.grid}>
-        {/* ── Filter & Sort pill ── */}
+        {/* Filter & Sort pill */}
         <TouchableOpacity
           style={[styles.filterPill, hasActiveFilters && styles.filterPillActive]}
           onPress={() => setFilterModalVisible(true)}
@@ -487,14 +484,12 @@ export default function Wardrobe() {
           {hasActiveFilters && <View style={styles.filterDot} />}
         </TouchableOpacity>
 
-        {/* ── 30-day rediscovery nudge ── */}
+        {/* 30-day rediscovery nudge */}
         <ForgottenPiecesSection
           items={forgottenItems}
           lastWornMap={lastWornMap}
           expanded={rediscoverExpanded}
           onToggle={() => setRediscoverExpanded(e => !e)}
-          // Future: pass onItemPress to connect forgotten pieces to the outfit builder.
-          // e.g. onItemPress={(item) => router.push({ pathname: "/(tabs)/builder", params: { prefillItemId: item.id } })}
         />
 
         {loading ? (

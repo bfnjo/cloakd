@@ -571,7 +571,7 @@ export default function Builder() {
   const previewShirtH    = 200;   // 154 × 1.3
   const previewBottomH   = previewIsShorts ? 182 : 341;  // 140/262 × 1.3
   const previewFootwearH = 146;   // 112 × 1.3
-  // Positions preserve exact same overlap values as before (40px shirt→shorts, 20px shorts→footwear, 84px shirt/pants→pants/footwear)
+  // Positions preserve exact same overlap values as before (40px shirt->shorts, 20px shorts->footwear, 84px shirt/pants->pants/footwear)
   const previewShirtBottom  = 10 + previewShirtH;
   const previewBottomTop    = previewIsShorts ? previewShirtBottom - 52 : previewShirtBottom - 84;
   const previewFootwearTop  = isDressOutfit ? 242 : previewBottomTop + previewBottomH - (previewIsShorts ? 20 : 84);
@@ -800,21 +800,21 @@ export default function Builder() {
                   <View key={`v-${i}`} style={[styles.gridVLine, { left: i * 22 }]} />
                 ))}
 
-                {/* Outerwear — pinned to left edge at shirt level */}
+                {/* Outerwear - pinned to left edge at shirt level */}
                 {outfit.outerwear && (
                   <View style={{ position: "absolute", left: 4, top: 12 }}>
                     <ItemPreview item={outfit.outerwear} width={122} height={159} />
                   </View>
                 )}
 
-                {/* Top or Dress — centred */}
+                {/* Top or Dress - centred */}
                 {outfit.top && (
                   <View style={{ position: "absolute", left: 0, right: 0, top: 10, alignItems: "center" }}>
                     <ItemPreview item={outfit.top} width={231} height={isDressOutfit ? 403 : previewShirtH} />
                   </View>
                 )}
 
-                {/* Bottom — overlap with shirt */}
+                {/* Bottom - overlap with shirt */}
                 {!isDressOutfit && outfit.bottom && (
                   <View style={{ position: "absolute", left: 0, right: 0, top: previewBottomTop, alignItems: "center" }}>
                     <ItemPreview item={outfit.bottom} width={211} height={previewBottomH} />
@@ -828,7 +828,7 @@ export default function Builder() {
                   </View>
                 )}
 
-                {/* Accessories — rendered last so they sit in front, overlap outfit sides */}
+                {/* Accessories - rendered last so they sit in front, overlap outfit sides */}
                 {outfit.accessory && (
                   <View style={{ position: "absolute", left: 0, top: 70 }}>
                     <ItemPreview item={outfit.accessory} width={167} height={167} />

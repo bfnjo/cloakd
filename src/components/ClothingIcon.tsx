@@ -9,7 +9,7 @@ import Svg, {
   Rect,
 } from "react-native-svg";
 
-// ─── Color utilities ──────────────────────────────────────────────────────────
+// Color utilities
 
 const COLOR_MAP: Record<string, string> = {
   white: "#F2F2F0",
@@ -108,7 +108,7 @@ function lighten(hex: string, amount = 0.3): string {
   return `#${Math.round(r + (255 - r) * amount).toString(16).padStart(2, "0")}${Math.round(g + (255 - g) * amount).toString(16).padStart(2, "0")}${Math.round(b + (255 - b) * amount).toString(16).padStart(2, "0")}`;
 }
 
-// ─── Camo pattern ─────────────────────────────────────────────────────────────
+// Camo pattern
 
 const CamoPattern = ({ id }: { id: string }) => (
   <Defs>
@@ -123,12 +123,12 @@ const CamoPattern = ({ id }: { id: string }) => (
   </Defs>
 );
 
-// ─── Shape components ─────────────────────────────────────────────────────────
+// Shape components
 
 function TShirtIcon({ fill, dark }: { fill: string; dark: string }) {
   return (
     <>
-      {/* Body + sleeves — Apple-emoji style: diagonal sleeves, round neckline */}
+      {/* Body + sleeves - Apple-emoji style: diagonal sleeves, round neckline */}
       <Path
         d="M 33,16 Q 50,30 67,16 L 80,14 L 98,30 L 92,50 L 76,46 L 76,92 L 24,92 L 24,46 L 8,50 L 2,30 L 20,14 Z"
         fill={fill}
@@ -281,13 +281,13 @@ function SandalIcon({ fill }: { fill: string }) {
   const strap   = darken(fill, 0.45);
   return (
     <>
-      {/* Midsole — flat elongated side view */}
+      {/* Midsole - flat elongated side view */}
       <Rect x="4" y="43" width="92" height="13" rx="6" fill={midsole} />
       {/* Footbed top surface strip */}
       <Rect x="4" y="41" width="92" height="5" rx="3" fill={footbed} />
       {/* Strap arch over front of shoe */}
       <Path d="M 86,41 Q 66,8 44,41 L 49,41 Q 66,18 81,41 Z" fill={strap} />
-      {/* Toe post — small upright at the very front */}
+      {/* Toe post - small upright at the very front */}
       <Path d="M 89,41 Q 92,33 87,28 Q 82,28 84,35 L 84,41 Z" fill={strap} />
     </>
   );
@@ -476,7 +476,7 @@ function RingIcon({ fill, dark, light }: { fill: string; dark: string; light: st
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// Main component
 
 type Props = {
   category: string;

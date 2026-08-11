@@ -270,7 +270,7 @@ The profile page is accessible from the profile button on the home page header. 
 
 Users can view their account statistics on the statistics page. It contains figures such as their Wardrobe Utilisation Score, total number of items owned and outfits logged, longest streak, total wardrobe value, average cost-per-wear for all the clothing items in their wardrobe, as well as their best value and most worn items.
 
-Users can also see their total wardrobe value and the total number of clothing items they own if they are interested to see how much they have spent on their wardrobe as a whole.
+Users can also see their total wardrobe value and the total number of clothing items they own if they are interested in seeing how much they have spent on their wardrobe as a whole.
 
 The average cost-per-wear figure shows the average cost-per-wear of all the clothing items in a user's wardrobe and also helps to encourage them to wear their clothing items more and log outfits to get better value out of the clothing items they already own.
 
@@ -319,7 +319,7 @@ The streak is also visible in the community feed: when a user with an active str
 </p>
 
 
-The badges page is complete with 36 badges. Users automatically unlock badges once they meet each badge's requirements and can share newly unlocked badges directly to the community feed.CLOAKD's badge system rewards users for consistent engagement across every core feature, such as logging streaks, tracking cost-per-wear, growing their wardrobe and being active in the community. Badges are organised into 11 categories, with progression tiers representing increasing milestones within each category. Progress bars on each badge card show real-time completion, and badges are automatically unlocked and persisted once their condition is met.
+The badges page is complete with 36 badges. Users automatically unlock badges once they meet each badge's requirements and can share newly unlocked badges directly to the community feed. CLOAKD's badge system rewards users for consistent engagement across every core feature, such as logging streaks, tracking cost-per-wear, growing their wardrobe and being active in the community. Badges are organised into 11 categories, with progression tiers representing increasing milestones within each category. Progress bars on each badge card show real-time completion, and badges are automatically unlocked and persisted once their condition is met.
 
 
 | Category | Badge | Tier | Unlock Requirement |
