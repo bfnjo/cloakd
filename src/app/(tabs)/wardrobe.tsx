@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
+import { Platform } from "react-native";
 import {
   ActivityIndicator,
   Alert,
@@ -120,6 +121,7 @@ export default function Wardrobe() {
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [pendingImageUri, setPendingImageUri] = useState<string | null>(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
   const [form, setForm] = useState({
     name: "",
     category: "Tops",
@@ -201,28 +203,38 @@ export default function Wardrobe() {
   async function uploadImage(localUri: string, userId: string): Promise<string | null> {
     try {
       setUploadingImage(true);
-      const processedUri = await removeBackground(localUri);
       const fileName = `${userId}_${Date.now()}.png`;
 
-      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-      const uploadResult = await uploadAsync(
-        `${supabaseUrl}/storage/v1/object/clothing-images/${fileName}`,
-        processedUri,
-        {
-          httpMethod: "POST",
-          uploadType: FileSystemUploadType.BINARY_CONTENT,
-          headers: {
-            Authorization: `Bearer ${supabaseKey}`,
-            "Content-Type": "image/png",
-            "x-upsert": "true",
-          },
+      if (Platform.OS === "web") {
+        // On web, run background removal (returns a blob: URL), then upload via Supabase client
+        const processedUri = await removeBackground(localUri);
+        const response = await fetch(processedUri);
+        const blob = await response.blob();
+        const { error } = await supabase.storage
+          .from("clothing-images")
+          .upload(fileName, blob, { contentType: "image/png", upsert: true });
+        if (error) throw new Error(error.message);
+      } else {
+        // On native, use background removal then uploadAsync
+        const processedUri = await removeBackground(localUri);
+        const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+        const uploadResult = await uploadAsync(
+          `${supabaseUrl}/storage/v1/object/clothing-images/${fileName}`,
+          processedUri,
+          {
+            httpMethod: "POST",
+            uploadType: FileSystemUploadType.BINARY_CONTENT,
+            headers: {
+              Authorization: `Bearer ${supabaseKey}`,
+              "Content-Type": "image/png",
+              "x-upsert": "true",
+            },
+          }
+        );
+        if (uploadResult.status < 200 || uploadResult.status >= 300) {
+          throw new Error(`Upload failed (${uploadResult.status}): ${uploadResult.body}`);
         }
-      );
-
-      if (uploadResult.status < 200 || uploadResult.status >= 300) {
-        throw new Error(`Upload failed (${uploadResult.status}): ${uploadResult.body}`);
       }
 
       const { data: urlData } = supabase.storage
@@ -277,7 +289,7 @@ export default function Wardrobe() {
     if (!user) return;
     if (!form.name || !form.colour) { Alert.alert("Error", "Please fill in name and colour"); return; }
 
-    let imageUrl = selectedItem.image_url;
+    let imageUrl: string | null = removeExistingImage ? null : selectedItem.image_url;
     if (pendingImageUri) {
       imageUrl = await uploadImage(pendingImageUri, user.uid);
     }
@@ -300,12 +312,21 @@ export default function Wardrobe() {
     else {
       setEditModalVisible(false);
       setPendingImageUri(null);
+      setRemoveExistingImage(false);
       setSelectedItem(null);
       fetchItems();
     }
   };
 
   const handleDeleteItem = (item: ClothingItem) => {
+    if (Platform.OS === "web") {
+      if (!window.confirm(`Delete ${item.name}? This cannot be undone.`)) return;
+      supabase.from("clothing_items").delete().eq("id", item.id).then(({ error }) => {
+        if (error) Alert.alert("Error", error.message);
+        else fetchItems();
+      });
+      return;
+    }
     Alert.alert(
       "Delete item",
       `Delete ${item.name}? This cannot be undone.`,
@@ -327,6 +348,7 @@ export default function Wardrobe() {
   const openEditModal = (item: ClothingItem) => {
     setSelectedItem(item);
     setPendingImageUri(null);
+    setRemoveExistingImage(false);
     setForm({
       name: item.name,
       category: item.category,
@@ -380,7 +402,7 @@ export default function Wardrobe() {
   //Image picker UI (shared between add & edit modals)
 
   const ImagePickerSection = ({ existingUrl }: { existingUrl?: string | null }) => {
-    const preview = pendingImageUri || existingUrl;
+    const preview = pendingImageUri || (removeExistingImage ? null : existingUrl);
     return (
       <View style={styles.imageSection}>
         <Text style={styles.label}>Photo (optional)</Text>
@@ -393,7 +415,7 @@ export default function Wardrobe() {
             />
             <TouchableOpacity
               style={styles.removeImageBtn}
-              onPress={() => setPendingImageUri(null)}
+              onPress={() => { setPendingImageUri(null); setRemoveExistingImage(true); }}
             >
               <Text style={styles.removeImageText}>✕ Remove</Text>
             </TouchableOpacity>
@@ -677,7 +699,7 @@ export default function Wardrobe() {
                 : <Text style={styles.submitButtonText}>Save Changes</Text>
               }
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => { setEditModalVisible(false); setPendingImageUri(null); }}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => { setEditModalVisible(false); setPendingImageUri(null); setRemoveExistingImage(false); }}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </ScrollView>

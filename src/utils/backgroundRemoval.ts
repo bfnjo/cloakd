@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import {
   cacheDirectory,
   EncodingType,
@@ -16,11 +17,23 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      resolve(dataUrl.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 /**
  * Removes the background from an image URI.
  * Requires EXPO_PUBLIC_REMOVEBG_API_KEY in .env.
  * Falls back to the original URI if no API key is set.
- * Returns a local file:// URI with the processed PNG.
+ * Returns a local file:// URI on native, or a blob: URL on web.
  */
 export async function removeBackground(imageUri: string): Promise<string> {
   if (!API_KEY) {
@@ -28,6 +41,34 @@ export async function removeBackground(imageUri: string): Promise<string> {
     return imageUri;
   }
 
+  if (Platform.OS === "web") {
+    const imageResponse = await fetch(imageUri);
+    const blob = await imageResponse.blob();
+    const base64Image = await blobToBase64(blob);
+
+    const response = await fetch("https://api.remove.bg/v1.0/removebg", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": API_KEY,
+      },
+      body: JSON.stringify({
+        image_file_b64: base64Image,
+        size: "auto",
+        format: "png",
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Background removal failed: ${errText}`);
+    }
+
+    const resultBlob = await response.blob();
+    return URL.createObjectURL(resultBlob);
+  }
+
+  // Native path
   const base64Image = await readAsStringAsync(imageUri, {
     encoding: EncodingType.Base64,
   });
